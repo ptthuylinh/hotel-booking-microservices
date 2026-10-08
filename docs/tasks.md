@@ -19,7 +19,7 @@
 ### 🔹 Thành viên 1: Cao Hoàng Phúc (MSSV: 24110303)
 - **Vai trò:** Phụ trách Hạ tầng mạng (VPC/Subnets/Route Tables), Thiết kế kiến trúc & Bảo mật mạng (Security Groups).
 - **Số giờ thực hiện:** 9.0 giờ
-- **Trạng thái:** Hoàn thành
+- **Trạng thái:** Chưa hoàn thành
 - **Công việc chi tiết:**
   1. Nghiên cứu tài liệu về ECS Fargate, ALB Path-based routing và CloudWatch.
   2. Thiết kế và vẽ sơ đồ kiến trúc tổng thể cho toàn bộ hệ thống microservices.
