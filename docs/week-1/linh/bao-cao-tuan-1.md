@@ -6,6 +6,12 @@
 **Môi trường:** Docker Desktop trên Windows & AWS Academy Learner Lab, Region `us-east-1` (Account ID: `0556-5295-1832`)  
 **Phân công:** Khởi tạo Source Code Skeleton, Dockerfile đa tầng & ECR Repositories. Kế hoạch tuần 1: 8.5 giờ.
 
+### Bảng phân công công việc tuần 1 (Worklog)
+| Thành viên | Nhiệm vụ chính | Số giờ | Trạng thái |
+|---|---|---|---|
+| Phan Thị Thùy Linh (`24110271`) | Khởi tạo Source Code Skeleton, Dockerfile đa tầng & ECR Repositories | 8.5 giờ | Hoàn thành |
+| Cao Hoàng Phúc (`24110303`) | Thiết kế kiến trúc tổng thể, VPC/Subnets/Route Tables, Security Groups, ALB & CloudWatch | [điền] | [điền] |
+
 Em thực hiện khởi tạo khung mã nguồn, xây dựng Dockerfile đa tầng, kiểm thử container hóa trên môi trường cục bộ và thiết lập các kho ECR trên AWS Academy Learner Lab. Các hình ảnh minh chứng được chụp trực tiếp từ terminal PowerShell, trình duyệt và AWS Console/CloudShell.
 
 ---
@@ -39,7 +45,7 @@ Mỗi service được cấu hình hai nhóm endpoint chính:
 - **Stage 2 (Runtime environment):** Sử dụng base image JRE siêu nhẹ `eclipse-temurin:17-jre`.
   - Chỉ sao chép file thực thi `app.jar` từ Stage 1 sang (`COPY --from=build /app/target/*.jar app.jar`).
   - Mở cổng `EXPOSE 8080` và thiết lập điểm chạy `ENTRYPOINT ["java","-jar","app.jar"]`.
-- Đồng thời, em tạo file `.dockerignore` cho từng service để loại bỏ thư mục `target/`, `.git`, file logs không cần thiết khỏi context build của Docker daemon, giúp giảm thời gian build và bảo vệ thông tin dự án.
+- Đồng thời, em tạo file `.dockerignore` cho từng service để loại bỏ thư mục `target/`, `.git`, `.gitignore`, file log (`*.log`) và các thư mục cấu hình IDE (`.idea/`, `.vscode/`) khỏi context build của Docker daemon, giúp giảm dung lượng context và tăng tốc độ đóng gói image.
 
 ---
 
@@ -115,7 +121,7 @@ aws ecr list-tags-for-resource --region us-east-1 --resource-arn arn:aws:ecr:us-
 ```
 
 Kết quả trả về xác nhận cả 3 repository đều đã được gán đầy đủ hai tag định danh:
-- `Project`: `HotelBooking`
+- `Project`: `hotel-booking-microservices`
 - `Owner`: `24110271`
 
 ![Kiểm tra tags của 3 ECR Repositories qua AWS CloudShell](images/07-ecr-tags-cloudshell.png)
@@ -127,7 +133,7 @@ Kết quả trả về xác nhận cả 3 repository đều đã được gán �
 Trong môi trường AWS Academy Learner Lab, quyền quản trị bị giới hạn theo chính sách học phần (không được tự ý tạo thêm IAM User hay Access Key mới). 
 
 Em đã truy cập IAM Console để kiểm tra quyền hạn của **`LabRole`**:
-- `LabRole` đã được tích hợp sẵn policy **`AmazonEC2ContainerRegistryReadOnly`** (AWS managed) cùng các quyền hệ thống hỗ trợ kéo/đẩy và quản lý container image.
+- `LabRole` đã được tích hợp sẵn policy **`AmazonEC2ContainerRegistryReadOnly`** (AWS managed) cho phép kéo (pull) image từ ECR. Cần lưu ý policy này chỉ cho phép đọc/kéo (read-only/pull), không cấp quyền đẩy (push) image lên kho chứa.
 - Role này sẽ được gán làm Task Execution Role và Task Role khi nhóm cấu hình ECS Task Definitions ở các tuần tiếp theo, đảm bảo ECS có thể xác thực và kéo image trực tiếp từ Amazon ECR mà không gặp lỗi phân quyền.
 
 ![Chính sách phân quyền của LabRole trong IAM Console](images/08-iam-labrole-permissions.png)
@@ -144,7 +150,7 @@ Sau tuần 1, em đã hoàn thành toàn bộ các hạng mục công việc đ�
 
 **Kế hoạch Tuần 2:**
 1. Đăng nhập Docker vào Amazon ECR (`aws ecr get-login-password`) và gắn tag version để push 3 Docker images lên ECR repositories.
-2. Phối hợp cùng bạn Cao Hoàng Phúc để triển khai các ECS Task Definitions và chạy Service trên hạ tầng VPC/ALB đã tạo.
+2. Phối hợp cùng bạn Cao Hoàng Phúc để triển khai trên VPC/ALB sau khi nhóm thống nhất tài khoản AWS dùng chung để triển khai (do mỗi sinh viên có tài khoản Learner Lab riêng).
 3. Thiết lập kết nối cơ sở dữ liệu (`RDS`/`DynamoDB`) và luồng message giữa các services qua `SNS`/`SQS`.
 
 ---

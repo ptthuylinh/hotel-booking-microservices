@@ -2,6 +2,9 @@
 
 **Đề tài:** Hệ thống đặt phòng khách sạn với kiến trúc microservices trên ECS  
 **Sinh viên:** Cao Hoàng Phúc — MSSV `24110303`  
+**Phân công:** Thiết kế kiến trúc và hạ tầng mạng cho hệ thống (VPC, Subnet, Route Table, Security Group, ALB, CloudWatch)  
+**Số giờ:** [điền]  
+**Trạng thái:** [điền]  
 **Môi trường:** AWS Academy Learner Lab, `us-east-1`  
 **Ngày thực hiện:** 09/10/2026
 
@@ -11,7 +14,7 @@ Em đã dựng phần mạng ban đầu cho hệ thống trên AWS Learner Lab. 
 
 ## Công việc đã làm
 
-1. **Tạo VPC** `hotel-booking-vpc` với CIDR `10.0.0.0/16`. Em chia VPC thành **2 public subnet và 2 private subnet** trên `us-east-1a` và `us-east-1b`: ALB cần hai AZ để nhận truy cập, còn ECS và RDS cần mạng riêng phía sau ALB. Em bật DNS để các tài nguyên phân giải tên và gắn tag `Project=hotel-booking-microservices`, `Owner=phuc-linh` để nhận diện tài nguyên của nhóm.
+1. **Tạo VPC** `hotel-booking-vpc` với CIDR `10.0.0.0/16`. Em chia VPC thành **2 public subnet và 2 private subnet** trên `us-east-1a` và `us-east-1b`: ALB cần hai AZ để nhận truy cập, còn ECS và RDS cần mạng riêng phía sau ALB. Em bật DNS để các tài nguyên phân giải tên và gắn tag `Project=hotel-booking-microservices`, `Owner=24110303` để nhận diện tài nguyên của nhóm.
 
    ![VPC và bốn subnet trên hai AZ](images/03-resource-map.png)
 
@@ -21,7 +24,7 @@ Em đã dựng phần mạng ban đầu cho hệ thống trên AWS Learner Lab. 
 
    ![Route table của public subnet](images/05-public-route.png)
 
-3. **Tạo ba security group** cho ALB, ECS và RDS. ALB SG mở HTTP port `80` cho người dùng vì đây là điểm vào của hệ thống. ECS SG chỉ nhận port `8081` và `8082` từ ALB SG để người dùng không gọi thẳng vào service. RDS SG chưa mở inbound để database không bị truy cập trước khi có kết nối cụ thể từ ECS.
+3. **Tạo ba security group** cho ALB, ECS và RDS. ALB SG mở HTTP port `80` cho người dùng vì đây là điểm vào của hệ thống. ECS SG chỉ nhận cổng `8080` từ ALB SG (do cả 3 microservice đều chạy cổng container `8080`) để người dùng không gọi thẳng vào service. RDS SG chưa mở inbound để database không bị truy cập trước khi có kết nối cụ thể từ ECS.
 
    ![Inbound rule của ALB SG](images/06-alb-ingress.png)
 
