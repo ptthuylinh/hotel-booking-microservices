@@ -24,7 +24,7 @@ Mục tiêu của buổi cấu hình được ghi lại trong báo cáo là tạ
 | 23:45 | Tạo và kiểm tra security group cho ALB. | Chỉ mở HTTP port `80` từ `0.0.0.0/0` cho đường vào demo. ECS và RDS sẽ không dùng rule public này. |
 | 23:49–23:51 | Nhập rule ECS SG và cấu hình RDS SG, sau đó bấm **Create** (theo xác nhận của em). | ECS nhận port `8081`/`8082` từ ALB SG; RDS chưa mở inbound vì nhóm chưa chọn PostgreSQL hay MySQL. Cần ảnh trang chi tiết để xác nhận ID và trạng thái sau tạo. |
 
-**Dấu thời gian, Account ID và Region của ảnh gốc:** thanh trên của AWS Console cho thấy Account ID `055652951832`, `United States (N. Virginia)` tức `us-east-1`, và thời gian chụp. Ảnh cắt dưới đây giữ phần nhận diện này và che địa chỉ email tài khoản; các ảnh cấu hình tiếp theo được đối chiếu từ cùng loạt ảnh gốc.
+Thanh trên của AWS Console cho thấy Account ID `055652951832`, Region `us-east-1` và thời gian chụp.
 
 ![Bối cảnh AWS Console: thời gian, Region, Account ID](images/09-console-context.png)
 
