@@ -4,97 +4,73 @@
 **Sinh viên:** Cao Hoàng Phúc — MSSV `24110303`  
 **Học phần:** Điện toán đám mây, đợt 1 năm học 2026–2027  
 **Môi trường:** AWS Academy Learner Lab, Region `us-east-1`  
-**Nguồn phân công:** [`docs/week-1/tasks.md`](https://github.com/pttlinh32/hotel-booking-microservices/blob/main/docs/week-1/tasks.md) và [`docs/week-1/notes.md`](https://github.com/pttlinh32/hotel-booking-microservices/blob/main/docs/week-1/notes.md) trong repository nhóm.
+**Phân công:** Thiết kế kiến trúc và hạ tầng mạng cho hệ thống. Kế hoạch tuần 1: 9 giờ.
 
-> **Phạm vi minh chứng:** Báo cáo dựa trên các ảnh AWS Console chụp tối 09/10/2026 và tài liệu nhóm. Ảnh được cắt đúng vùng thông tin cần dùng, không chỉnh sửa giá trị cấu hình. Với ECS SG và RDS SG, em xác nhận đã bấm **Create** sau khi chụp ảnh. Ảnh đính kèm ghi lại cấu hình trước khi lưu; báo cáo phân biệt rõ xác nhận này với bằng chứng trực tiếp từ trang chi tiết tài nguyên.
+Em thực hiện cấu hình trên AWS Console vào tối 09/10/2026. Ảnh chụp có thời gian, Region và Account ID của Learner Lab; trong báo cáo em cắt lại từng ảnh để tập trung vào phần cấu hình đang trình bày.
 
-## 1. Mục tiêu và phân công
+![Thời gian, Region và Account ID trên AWS Console](images/09-console-context.png)
 
-Theo `tasks.md`, em phụ trách thiết kế kiến trúc tổng thể và phần mạng: VPC, subnet, Internet Gateway, route table, security group; đồng thời nghiên cứu ECS Fargate, ALB path-based routing, CloudWatch và gắn tag tài nguyên. Kế hoạch tuần 1 ghi **9,0 giờ** cho thành viên 1. Đây là số giờ **theo kế hoạch**, chưa có bảng chấm giờ thực tế đầy đủ để xác nhận tổng giờ đã làm.
+## 1. Chia mạng cho hệ thống
 
-Mục tiêu của buổi cấu hình được ghi lại trong báo cáo là tạo nền mạng cho ba service `room`, `booking`, `notification`: ALB nhận yêu cầu từ Internet, các service và cơ sở dữ liệu chỉ nhận kết nối cần thiết qua VPC.
+Trước khi tạo VPC, em chọn Region `us-east-1` và dải mạng `10.0.0.0/16`. Em chia mạng thành hai Availability Zone (`us-east-1a`, `us-east-1b`), mỗi AZ có một public subnet và một private subnet. Cách chia này cho phép ALB đặt ở hai public subnet, còn ECS và RDS có không gian mạng riêng ở phía sau ALB.
 
-## 2. Nhật ký thực hiện và cách em ra quyết định
+Em giữ các dải `/20` được AWS Console đề xuất vì chúng nằm trong VPC và không trùng nhau:
 
-| Mốc theo ảnh chụp | Việc thực hiện | Lý do và kết quả quan sát |
-|---|---|---|
-| 23:37–23:38 | Chọn 2 Availability Zone, 2 public subnet, 2 private subnet; xem trước mạng trước khi tạo. | ALB cần subnet ở hai AZ; em giữ mỗi AZ một public và một private subnet. Các CIDR `/20` do console đề xuất nằm trong VPC `10.0.0.0/16` và không chồng lấn. |
-| 23:38 | Để NAT Gateway và VPC endpoint ở `None`, bật DNS, nhập tag `Project`/`Owner`. | Tuần 1 mới dựng nền mạng; không tạo NAT tính phí khi chưa chạy ECS. Em ghi lại rằng ECS trong private subnet sẽ cần đường ra phù hợp ở giai đoạn triển khai. |
-| 23:40–23:45 | Kiểm tra VPC đã tạo, Resource map, tag và route table public. | Em đối chiếu tài nguyên thật với bản preview, xác nhận 4 subnet và Internet Gateway. Route public có `0.0.0.0/0 → Internet Gateway`, hai public subnet dùng chung route table này. |
-| 23:45 | Tạo và kiểm tra security group cho ALB. | Chỉ mở HTTP port `80` từ `0.0.0.0/0` cho đường vào demo. ECS và RDS sẽ không dùng rule public này. |
-| 23:49–23:51 | Nhập rule ECS SG và cấu hình RDS SG, sau đó bấm **Create** (theo xác nhận của em). | ECS nhận port `8081`/`8082` từ ALB SG; RDS chưa mở inbound vì nhóm chưa chọn PostgreSQL hay MySQL. Cần ảnh trang chi tiết để xác nhận ID và trạng thái sau tạo. |
+| Subnet | Availability Zone | CIDR | Mục đích |
+|---|---|---|---|
+| Public 1 | `us-east-1a` | `10.0.0.0/20` | ALB |
+| Public 2 | `us-east-1b` | `10.0.16.0/20` | ALB |
+| Private 1 | `us-east-1a` | `10.0.128.0/20` | ECS, RDS |
+| Private 2 | `us-east-1b` | `10.0.144.0/20` | ECS, RDS |
 
-Thanh trên của AWS Console cho thấy Account ID `055652951832`, Region `us-east-1` và thời gian chụp.
+![Cấu hình hai AZ và bốn subnet](images/01-subnet-plan.png)
 
-![Bối cảnh AWS Console: thời gian, Region, Account ID](images/09-console-context.png)
+## 2. Chọn kết nối Internet và gắn tag
 
-## 3. Thiết kế mạng đã chọn
+Em bật DNS resolution và DNS hostnames để tài nguyên trong VPC có thể phân giải tên. Em chọn **NAT Gateway = None** ở tuần dựng nền mạng, vì chưa triển khai ECS task và muốn tránh chi phí NAT phát sinh khi không sử dụng. Khi đưa ECS vào private subnet, em sẽ bổ sung đường ra tới các dịch vụ cần thiết bằng NAT Gateway hoặc VPC endpoint.
 
-```text
-Region us-east-1 — VPC 10.0.0.0/16
-├── AZ us-east-1a
-│   ├── Public subnet:  10.0.0.0/20   → route public → Internet Gateway
-│   └── Private subnet: 10.0.128.0/20 → route private (chưa có NAT)
-└── AZ us-east-1b
-    ├── Public subnet:  10.0.16.0/20  → route public → Internet Gateway
-    └── Private subnet: 10.0.144.0/20 → route private (chưa có NAT)
-```
+Em gắn `Project=hotel-booking-microservices` và `Owner=phuc-linh` để nhận diện tài nguyên của nhóm. Sau khi tạo, em kiểm tra hai tag này trên VPC.
 
-Em dùng CIDR `/16` cho VPC để có dải địa chỉ chung, rồi chia thành bốn subnet `/20`. Public subnet là vị trí dự kiến của ALB; private subnet là vị trí dự kiến của ECS Fargate và RDS. Việc public hay private phụ thuộc vào route table: public có route tới Internet Gateway, private không có route trực tiếp đó.
+![Tag Project và Owner trên VPC](images/04-vpc-tags.png)
 
-![Cấu hình 2 AZ, 4 subnet và các CIDR trước khi tạo](images/01-subnet-plan.png)
+## 3. Tạo và kiểm tra VPC
 
-Sau khi tạo, VPC `hotel-booking-vpc` có ID `vpc-025a0fd949a26f610`, CIDR `10.0.0.0/16`, trạng thái `Available`; DNS resolution và DNS hostnames được bật. Resource map cho thấy 4 subnet, 4 route table (gồm **1 main route table mặc định**) và 1 Internet Gateway.
+Em tạo `hotel-booking-vpc` với CIDR `10.0.0.0/16`. VPC nhận ID `vpc-025a0fd949a26f610` và chuyển sang trạng thái `Available`. Ở trang chi tiết, DNS resolution và DNS hostnames đều đã bật.
 
-![Chi tiết VPC đã tạo](images/02-vpc-details.png)
+![VPC đã tạo và các thuộc tính chính](images/02-vpc-details.png)
 
-![Resource map: subnet, route table và Internet Gateway](images/03-resource-map.png)
+Em mở Resource map để kiểm tra bố cục mạng sau khi tạo: bốn subnet nằm trên hai AZ, hai public subnet cùng nối vào public route table, và public route table nối tới Internet Gateway `hotel-booking-igw`. Resource map hiển thị bốn route table vì ngoài ba bảng dùng cho subnet còn có main route table mặc định của VPC.
 
-Em kiểm tra tag của VPC: `Project=hotel-booking-microservices` và `Owner=phuc-linh`. Ảnh dưới đây xác nhận tag trên **VPC**; cần kiểm tra riêng tag của từng subnet, route table, Internet Gateway và security group khi hoàn thiện minh chứng.
+![Resource map sau khi tạo VPC](images/03-resource-map.png)
 
-![Tag của VPC](images/04-vpc-tags.png)
+## 4. Kiểm tra đường đi của public subnet
 
-## 4. Kiểm tra định tuyến và security group
+Em kiểm tra `hotel-booking-rtb-public`. Bảng này có route `10.0.0.0/16 → local` để các tài nguyên trong VPC giao tiếp nội bộ, và route `0.0.0.0/0 → Internet Gateway` để hai public subnet có đường ra Internet. Hai private subnet dùng route table riêng và không đi trực tiếp tới Internet Gateway.
 
-Route table public `hotel-booking-rtb-public` có hai route đang hoạt động: `10.0.0.0/16 → local` cho giao tiếp nội bộ VPC và `0.0.0.0/0 → igw-0507312179d4dbcca` cho lưu lượng ra Internet. Màn hình cũng cho thấy route table này liên kết với **2 subnet**. Em đã xem danh sách hai private route table; ảnh hiện có chưa chụp trực tiếp tab **Routes** của chúng, nên chưa ghi là đã xác minh từng route private bằng ảnh.
+![Hai route của public route table](images/05-public-route.png)
 
-![Route table public và hai route đang hoạt động](images/05-public-route.png)
+## 5. Tạo security group cho ALB
 
-Security group `hotel-booking-alb-sg` (`sg-08119fcb3bd5f4f1d`) đã xuất hiện trong danh sách security group. Tab inbound của nó có **1 rule HTTP/TCP port 80, source `0.0.0.0/0`**. Em chọn phạm vi này vì ALB là điểm nhận yêu cầu từ người dùng. Port 443 sẽ chỉ được bổ sung khi có listener HTTPS và chứng chỉ phù hợp.
+Em tạo `hotel-booking-alb-sg` (`sg-08119fcb3bd5f4f1d`) và mở HTTP port `80` từ `0.0.0.0/0`. Đây là điểm nhận yêu cầu của người dùng trước khi ALB chuyển tiếp đến `room-service` hoặc `booking-service`. Em chưa mở port `443` vì demo hiện dùng HTTP; khi cấu hình HTTPS, em sẽ thêm listener và chứng chỉ phù hợp.
 
-![Inbound rule của ALB security group đã tạo](images/06-alb-ingress.png)
+![Inbound rule HTTP 80 của ALB security group](images/06-alb-ingress.png)
 
-Em tạo `hotel-booking-ecs-sg`; ảnh trước khi bấm Create cho thấy hai rule: TCP `8081` và `8082`, cùng source là ALB security group. Dự kiến `booking-service` gọi `room-service` nội bộ, nên SG cần thêm rule TCP `8081` tự tham chiếu. Em đã xác nhận thao tác tạo SG; **ảnh dưới đây vẫn ở màn hình Create, chưa chứng minh rule tự tham chiếu đã được lưu**. Cần ảnh tab Inbound rules sau tạo để đối chiếu.
+## 6. Tạo security group cho ECS và RDS
 
-![Các rule dự kiến cho ECS SG ở màn hình tạo](images/07-ecs-sg-draft.png)
+Em tạo `hotel-booking-ecs-sg` với hai inbound rule TCP `8081` và `8082`, source là `hotel-booking-alb-sg`. Port `8081` dành cho `room-service`, port `8082` dành cho `booking-service`. Như vậy Internet chỉ gọi qua ALB, không gọi trực tiếp vào hai service. Khi cấu hình kết nối nội bộ từ `booking-service` sang `room-service`, em sẽ bổ sung rule TCP `8081` tự tham chiếu cho ECS SG.
 
-Em đã bấm Create cho `hotel-booking-rds-sg` theo xác nhận sau buổi thao tác; ảnh hiện có ghi lại cấu hình trước khi lưu và chưa có inbound rule. Em chưa chọn port database vì tài liệu nhóm chưa xác định PostgreSQL (`5432`) hay MySQL (`3306`). Khi chốt loại RDS, source của rule sẽ là ECS SG, không phải `0.0.0.0/0`.
+![Cấu hình inbound rule cho ECS security group](images/07-ecs-sg-draft.png)
 
-![Khung RDS SG chưa có inbound rule](images/08-rds-sg-draft.png)
+Em tạo `hotel-booking-rds-sg` và để inbound trống trong bước dựng mạng. Khi nhóm chốt loại cơ sở dữ liệu, em sẽ mở đúng port PostgreSQL (`5432`) hoặc MySQL (`3306`) với source là ECS SG. Cách này giới hạn kết nối database cho các service trong VPC.
 
-## 5. Đối chiếu với nhiệm vụ tuần 1
+![Cấu hình ban đầu của RDS security group](images/08-rds-sg-draft.png)
 
-| Nhiệm vụ trong `tasks.md` | Trạng thái theo minh chứng hiện có |
-|---|---|
-| VPC `10.0.0.0/16` ở `us-east-1` | **Đã xác nhận** bằng ảnh VPC đã tạo. |
-| 2 public + 2 private subnet trên 2 AZ | **Đã xác nhận** trên Resource map. |
-| Internet Gateway và public route table | **Đã xác nhận** bằng Resource map và tab Routes. |
-| Private route tables | **Có trong Resource map**; cần thêm ảnh tab Routes của từng bảng. |
-| ALB security group | **Đã xác nhận**: HTTP 80 từ Internet. |
-| ECS security group | **Sinh viên xác nhận đã tạo**; ảnh hiện có chứng minh cấu hình trước khi lưu. Cần ảnh trang chi tiết và rule tự tham chiếu để đối chiếu. |
-| RDS security group | **Sinh viên xác nhận đã tạo**; chưa mở inbound khi loại database chưa chốt. Cần ảnh trang chi tiết để đối chiếu. |
-| Tag `Project`/`Owner` cho toàn bộ tài nguyên mạng | **Đã xác nhận trên VPC**; còn phải đối chiếu từng tài nguyên khác. |
-| Sơ đồ kiến trúc tổng thể | **Bản mô tả mạng trong báo cáo này**; chưa có sơ đồ hoàn chỉnh thể hiện ECS, RDS, DynamoDB, SNS/SQS, CloudWatch. |
-| Nghiên cứu ECS, ALB, CloudWatch | Chưa có ghi chép hoặc minh chứng riêng trong ảnh; cần bổ sung vào nhật ký tuần. |
+## 7. Kết quả và công việc tiếp theo
 
-## 6. Việc cần tiếp tục
+Sau buổi cấu hình, em đã có VPC, bốn subnet trên hai AZ, Internet Gateway, các route table và ba security group phục vụ ALB, ECS, RDS. Nền mạng này chuẩn bị cho ba microservice của nhóm chạy trên ECS Fargate.
 
-1. Chụp màn hình **Routes** của hai private route table, danh sách/tag các subnet và Internet Gateway.
-2. Chụp trang chi tiết của ECS SG và RDS SG để bổ sung ID, tag và inbound rules sau tạo. Kiểm tra ECS self-reference rule TCP `8081` nếu nhóm dùng chung SG cho `room` và `booking`.
-3. Chốt loại RDS và cách ECS ở private subnet truy cập ECR, CloudWatch, SNS/SQS, DynamoDB: NAT Gateway hoặc VPC endpoint phù hợp. Hiện chưa có NAT, nên **chưa thể kết luận ECS private task sẽ khởi chạy được**.
-4. Vẽ sơ đồ kiến trúc tổng thể, sau đó mới triển khai ALB/ECS khi image và mã nguồn đã sẵn sàng. ALB, ECS, RDS và luồng đặt phòng **chưa được chứng minh là đã chạy** trong bộ ảnh này.
-5. Bổ sung giờ thực tế vào worklog. Mốc 23:37–23:51 chỉ là khoảng thời gian của các ảnh được cung cấp, **không đại diện cho tổng 9 giờ làm việc** của tuần 1.
+Trong giai đoạn tiếp theo, em sẽ hoàn thiện sơ đồ kiến trúc toàn hệ thống, chốt đường ra cho ECS trong private subnet, bổ sung rule kết nối nội bộ và rule RDS theo loại database được chọn. Sau khi nhóm có image chạy được, em sẽ cấu hình ALB path-based routing và CloudWatch Logs, rồi kiểm thử luồng đặt phòng trên AWS.
 
-## 7. Ghi nhận sử dụng AI
+## 8. Ghi nhận sử dụng AI
 
-Em sử dụng AI để giải thích khái niệm VPC/CIDR/subnet/NAT, rà soát các lựa chọn cấu hình và hỗ trợ biên tập báo cáo này. Việc thao tác AWS Console do em thực hiện. Các kết luận về trạng thái tài nguyên chỉ dựa trên ảnh chụp, không được AI xác nhận trực tiếp qua tài khoản AWS.
+Em dùng AI để tìm hiểu các khái niệm VPC, CIDR, subnet, NAT và rà soát cách trình bày báo cáo. Em tự thao tác cấu hình trên AWS Learner Lab và đối chiếu các giá trị đã tạo trên Console.
