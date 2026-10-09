@@ -10,6 +10,7 @@
 ## 🛠️ Chi Tiết Triển Khai
 
 ### 1. Hạ tầng mạng & Bảo mật (Thành viên 1 - Cao Hoàng Phúc)
+*(Xem báo cáo chi tiết tại [`phuc/bao-cao-tuan-1.md`](phuc/bao-cao-tuan-1.md))*
 - **VPC:** `10.0.0.0/16` tại `us-east-1`.
 - **Subnets:**
   - `Public Subnet 1`: `us-east-1a`
@@ -22,7 +23,8 @@
   - `ECS-SG`: Chỉ cho phép Inbound từ `ALB-SG` qua các cổng dịch vụ nội bộ.
 - **Resource Tagging:** Tất cả tài nguyên được gán tag `Project=hotel-booking-microservices` và `Owner=phuc-linh`.
 
-### 2. Dịch vụ & Containerization (Thành viên 2 - Phan Thùy Linh)
+### 2. Dịch vụ & Containerization (Thành viên 2 - Phan Thị Thùy Linh)
+*(Xem báo cáo chi tiết tại [`linh/bao-cao-tuan-1.md`](linh/bao-cao-tuan-1.md))*
 - **Mã nguồn:** Khung 3 services độc lập:
   - `room-service` (Port 8081 / endpoint: `/api/rooms`)
   - `booking-service` (Port 8082 / endpoint: `/api/bookings`)

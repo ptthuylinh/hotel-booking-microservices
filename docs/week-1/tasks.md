@@ -10,7 +10,7 @@
 
 ## 👥 THÀNH VIÊN NHÓM
 1. **Cao Hoàng Phúc** - MSSV: `24110303` (Thành viên 1)
-2. **Phan Thùy Linh** - MSSV: `24110308` (Thành viên 2)
+2. **Phan Thị Thùy Linh** - MSSV: `24110271` (Thành viên 2)
 
 ---
 
@@ -31,7 +31,7 @@
 
 ---
 
-### 🔹 Thành viên 2: Phan Thùy Linh (MSSV: 24110308)
+### 🔹 Thành viên 2: Phan Thị Thùy Linh (MSSV: 24110271)
 - **Vai trò:** Khởi tạo Source Code Skeleton, Dockerfile đa tầng & ECR Repositories.
 - **Số giờ thực hiện:** 8.5 giờ
 - **Trạng thái:** Hoàn thành
