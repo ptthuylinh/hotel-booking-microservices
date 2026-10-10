@@ -74,9 +74,9 @@ flowchart TB
                 PrivSub2["Private Subnet 2 (us-east-1b) - 10.0.12.0/24"]
 
                 subgraph ECSFargate["AWS ECS Fargate Cluster"]
-                    RoomSvc["Room Service - Port 8081 - ECR: hotel-room-service"]
-                    BookingSvc["Booking Service - Port 8082 - ECR: hotel-booking-service"]
-                    NotifSvc["Notification Service - Port 8083 - ECR: hotel-notification-service"]
+                    RoomSvc["Room Service - Port 8080 - ECR: hotel-room-service"]
+                    BookingSvc["Booking Service - Port 8080 - ECR: hotel-booking-service"]
+                    NotifSvc["Notification Service - Port 8080 - ECR: hotel-notification-service"]
                 end
 
                 subgraph DataLayer["Tầng Dữ Liệu và Hàng Đợi - Persistence and Messaging"]
@@ -135,12 +135,12 @@ sequenceDiagram
     autonumber
     actor Client as Khách hàng (Client / Frontend)
     participant ALB as Application Load Balancer
-    participant Booking as Booking Service (Port 8082)
-    participant Room as Room Service (Port 8081)
+    participant Booking as Booking Service (Port 8080)
+    participant Room as Room Service (Port 8080)
     participant DB as Tầng Cơ Sở Dữ Liệu (RDS / DynamoDB)
     participant SNS as Amazon SNS Topic (hotel-booking-events)
     participant SQS as Amazon SQS Queue (booking-notification-queue)
-    participant Notif as Notification Service (Port 8083)
+    participant Notif as Notification Service (Port 8080)
     participant CW as Amazon CloudWatch Logs
 
     %% Bước 1: Tra cứu phòng
@@ -188,9 +188,9 @@ sequenceDiagram
 
 | Thứ tự ưu tiên | Đường dẫn (Path Pattern) | Cổng Service | Đích đến (Target Group) | Mục đích sử dụng |
 | :---: | :--- | :---: | :--- | :--- |
-| **1** | `/api/rooms*` | `8081` | `tg-hotel-room-service` | Tra cứu danh sách phòng, trạng thái phòng và quản lý phòng |
-| **2** | `/api/bookings*` | `8082` | `tg-hotel-booking-service` | Tiếp nhận yêu cầu đặt phòng, quản lý lịch sử đặt chỗ |
-| **3** | `/api/notifications*` | `8083` | `tg-hotel-notification-service` | Quản lý cấu hình thông báo, lịch sử thông báo đã gửi |
+| **1** | `/api/rooms*` | `8080` | `tg-hotel-room-service` | Tra cứu danh sách phòng, trạng thái phòng và quản lý phòng |
+| **2** | `/api/bookings*` | `8080` | `tg-hotel-booking-service` | Tiếp nhận yêu cầu đặt phòng, quản lý lịch sử đặt chỗ |
+| **3** | `/api/notifications*` | `8080` | `tg-hotel-notification-service` | Quản lý cấu hình thông báo, lịch sử thông báo đã gửi |
 | **Default** | `/*` | `80` | `Default 404 / Health Check` | Trả về mã lỗi 404 hoặc trang kiểm tra trạng thái chung |
 
 ---
@@ -205,7 +205,7 @@ sequenceDiagram
 | **Private Subnet 1** | `subnet-private-1` | `10.0.11.0/24` | `us-east-1a` | Chứa ECS Fargate Tasks & Data layer (Nội bộ) |
 | **Private Subnet 2** | `subnet-private-2` | `10.0.12.0/24` | `us-east-1b` | Chứa ECS Fargate Tasks & Data layer (Nội bộ) |
 | **ALB-SG** | `sg-hotel-alb` | Inbound: `80, 443` (`0.0.0.0/0`) | - | Nhận request từ Internet và chuyển tiếp nội bộ |
-| **ECS-SG** | `sg-hotel-ecs` | Inbound: `8081, 8082, 8083` (Từ `ALB-SG`) | - | Chỉ cho phép truy cập từ ALB SG, chặn hoàn toàn truy cập ngoài |
+| **ECS-SG** | `sg-hotel-ecs` | Inbound: `8080` (Từ `ALB-SG`) | - | Chỉ cho phép truy cập từ ALB SG, chặn hoàn toàn truy cập ngoài |
 
 ---
 
