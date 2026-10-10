@@ -4,21 +4,24 @@
 **Sinh viên:** Phan Thị Thùy Linh — MSSV `24110271`  
 **Học phần:** Điện toán đám mây, đợt 1 năm học 2026–2027  
 **Môi trường:** Docker Desktop trên Windows & AWS Academy Learner Lab, Region `us-east-1` (Account ID: `0556-5295-1832`)  
-**Phân công:** Khởi tạo Source Code Skeleton, Dockerfile đa tầng & ECR Repositories. Kế hoạch tuần 1: 8.5 giờ.
+**Repository:** https://github.com/pttlinh32/hotel-booking-microservices  
+**Phân công:** Khởi tạo Source Code Skeleton, Dockerfile đa tầng & ECR Repositories. Số giờ thực hiện: 8.5 giờ.
 
 ### Bảng phân công công việc tuần 1 (Worklog)
 | Thành viên | Nhiệm vụ chính | Số giờ | Trạng thái |
 |---|---|---|---|
 | Phan Thị Thùy Linh (`24110271`) | Khởi tạo Source Code Skeleton, Dockerfile đa tầng & ECR Repositories | 8.5 giờ | Hoàn thành |
-| Cao Hoàng Phúc (`24110303`) | Thiết kế kiến trúc tổng thể, VPC/Subnets/Route Tables, Security Groups, ALB & CloudWatch | [điền] | [điền] |
+| Cao Hoàng Phúc (`24110303`) | VPC, Subnets, Route Tables, Security Groups; nghiên cứu ALB & CloudWatch (triển khai tuần 2); sơ đồ kiến trúc | 9.0 giờ | Chưa hoàn thành |
 
 Em thực hiện khởi tạo khung mã nguồn, xây dựng Dockerfile đa tầng, kiểm thử container hóa trên môi trường cục bộ và thiết lập các kho ECR trên AWS Academy Learner Lab. Các hình ảnh minh chứng được chụp trực tiếp từ terminal PowerShell, trình duyệt và AWS Console/CloudShell.
+
+Ảnh trong báo cáo này chụp trên tài khoản Learner Lab của Phan Thị Thùy Linh (Account ID 0556-5295-1832). Ảnh của Cao Hoàng Phúc chụp trên tài khoản riêng của bạn. Từ tuần 2, nhóm triển khai trên tài khoản của Linh theo sự đồng ý của GVHD Huỳnh Xuân Phụng.
 
 ---
 
 ## 1. Khởi tạo cấu trúc microservices & API endpoints
 
-Em khởi tạo khung dự án (skeleton) cho 3 microservices độc lập dựa trên nền tảng Java 17, Spring Boot 3 và Maven Wrapper:
+Em khởi tạo khung dự án (skeleton) cho 3 microservices độc lập dựa trên nền tảng Java 17, Spring Boot 4.1.1 và Maven Wrapper:
 - **`room-service`**: Quản lý thông tin và trạng thái phòng (chạy trên cổng container `8080`, root API `/api/rooms`).
 - **`booking-service`**: Xử lý nghiệp vụ và quy trình đặt phòng (chạy trên cổng container `8080`, root API `/api/bookings`).
 - **`notification-service`**: Tiếp nhận sự kiện và gửi thông báo (chạy trên cổng container `8080`, root API `/api/notifications`).
@@ -150,7 +153,7 @@ Sau tuần 1, em đã hoàn thành toàn bộ các hạng mục công việc đ�
 
 **Kế hoạch Tuần 2:**
 1. Đăng nhập Docker vào Amazon ECR (`aws ecr get-login-password`) và gắn tag version để push 3 Docker images lên ECR repositories.
-2. Phối hợp cùng bạn Cao Hoàng Phúc để triển khai trên VPC/ALB sau khi nhóm thống nhất tài khoản AWS dùng chung để triển khai (do mỗi sinh viên có tài khoản Learner Lab riêng).
+2. Triển khai ECS Task Definition, ALB (path-based routing, health check /actuator/health), RDS, DynamoDB, SNS, SQS trên tài khoản Learner Lab của Linh, cùng bạn Cao Hoàng Phúc (Phúc viết template/hướng dẫn hạ tầng, Linh chạy và kiểm thử).
 3. Thiết lập kết nối cơ sở dữ liệu (`RDS`/`DynamoDB`) và luồng message giữa các services qua `SNS`/`SQS`.
 
 ---

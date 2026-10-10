@@ -21,14 +21,14 @@
 - **Security Groups:**
   - `ALB-SG`: Cho phép Inbound port 80/443 từ mọi nơi (`0.0.0.0/0`).
   - `ECS-SG`: Chỉ cho phép Inbound từ `ALB-SG` qua các cổng dịch vụ nội bộ.
-- **Resource Tagging:** Tất cả tài nguyên được gán tag `Project=hotel-booking-microservices` và `Owner=phuc-linh`.
+- **Resource Tagging:** Tất cả tài nguyên được gán tag `Project=hotel-booking-microservices` và `Owner=<MSSV người tạo tài nguyên>` (Linh: 24110271, Phúc: 24110303).
 
 ### 2. Dịch vụ & Containerization (Thành viên 2 - Phan Thị Thùy Linh)
 *(Xem báo cáo chi tiết tại [`linh/bao-cao-tuan-1.md`](linh/bao-cao-tuan-1.md))*
 - **Mã nguồn:** Khung 3 services độc lập:
-  - `room-service` (Port 8081 / endpoint: `/api/rooms`)
-  - `booking-service` (Port 8082 / endpoint: `/api/bookings`)
-  - `notification-service` (Port 8083 / endpoint: `/api/notifications`)
+  - `room-service` (Port 8080 / endpoint: `/api/rooms`)
+  - `booking-service` (Port 8080 / endpoint: `/api/bookings`)
+  - `notification-service` (Port 8080 / endpoint: `/api/notifications`)
 - **Docker:** Multi-stage build (Maven compile + Eclipse Temurin 17 JRE slim) tối ưu dung lượng image.
 - **ECR Repositories:**
   - `hotel-room-service`

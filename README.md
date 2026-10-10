@@ -1,5 +1,7 @@
 # Hệ thống đặt phòng khách sạn - Microservices trên AWS ECS
 
+**Repository:** https://github.com/pttlinh32/hotel-booking-microservices
+
 Đồ án Capstone - Điện toán đám mây (Cloud) - GVHD: Huỳnh Xuân Phụng
 
 ## 👥 Thành viên nhóm & Phân chia nhiệm vụ
