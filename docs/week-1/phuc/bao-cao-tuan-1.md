@@ -36,9 +36,9 @@ Kế hoạch phân bổ dải địa chỉ mạng CIDR cho VPC `10.0.0.0/16` bao
 
    ![Inbound rule của ALB SG](images/06-alb-ingress.png)
 
-   ![Bản nháp ban đầu của ECS SG với cổng 8081 và 8082](images/07-ecs-sg-draft.png)
+   ![Minh họa ECS SG sau khi đồng bộ cổng 8080](images/07-ecs-sg-8080-illustration.png)
 
-   *Ảnh trên ghi lại bản nháp ban đầu, không phải cấu hình hiện tại. Ngày 10/10/2026, đã kiểm tra và cập nhật bằng AWS CLI: `hotel-booking-ecs-sg` (`sg-005ce5a54ed8d4ff2`) chỉ còn inbound TCP `8080` từ ALB SG (`sg-08119fcb3bd5f4f1d`). Các rule `8081` và `8082` đã được gỡ.*
+   *Ảnh minh họa đã chỉnh từ [ảnh bản nháp ban đầu](images/07-ecs-sg-draft.png), không phải ảnh chụp trực tiếp cấu hình hiện tại. Ngày 10/10/2026, đã kiểm tra và cập nhật bằng AWS CLI: `hotel-booking-ecs-sg` (`sg-005ce5a54ed8d4ff2`) chỉ còn inbound TCP `8080` từ ALB SG (`sg-08119fcb3bd5f4f1d`). Các rule `8081` và `8082` đã được gỡ.*
 
    ![Cấu hình RDS SG](images/08-rds-sg-draft.png)
 
@@ -63,8 +63,7 @@ Kế hoạch phân bổ dải địa chỉ mạng CIDR cho VPC `10.0.0.0/16` bao
 
 ## Sơ đồ kiến trúc
 
-![Sơ đồ kiến trúc](images/architecture.png)  
-*[Phúc bổ sung ảnh sơ đồ]*
+![Sơ đồ kiến trúc hệ thống hotel booking microservices](../images/01-aws-cloud-architecture.png)
 
 ## Kế hoạch tuần 2
 
