@@ -4,3 +4,8 @@ target/
 *.class
 *.log
 .env
+.venv/
+__pycache__/
+node_modules/
+*.tmp
+*.temp
