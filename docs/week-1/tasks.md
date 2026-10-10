@@ -51,6 +51,8 @@
 ### 1. Sơ đồ kiến trúc hạ tầng AWS (AWS Cloud Infrastructure Diagram)
 Kiến trúc phân tầng bảo mật trên AWS Learner Lab (`us-east-1`), phân tách Multi-AZ Public / Private Subnets, cân bằng tải qua Application Load Balancer (ALB) Path-based Routing, các microservices chạy trên ECS Fargate trong mạng Private, lưu trữ đa tầng (RDS & DynamoDB), truyền thông điệp bất đồng bộ (SNS / SQS) và ghi log tập trung qua CloudWatch:
 
+![Sơ đồ kiến trúc hạ tầng AWS](images/01-aws-cloud-architecture.png)
+
 ```mermaid
 flowchart TB
     subgraph Users["Khách Hàng / Clients"]
@@ -129,6 +131,8 @@ flowchart TB
 Mô tả chi tiết 2 cơ chế giao tiếp theo yêu cầu đề tài:
 - **Giao tiếp đồng bộ (Synchronous REST):** Khi Client đặt phòng, `booking-service` gọi REST trực tiếp sang `room-service` để xác nhận trạng thái phòng.
 - **Giao tiếp bất đồng bộ (Asynchronous Event-Driven):** Sau khi đặt phòng thành công, `booking-service` gửi sự kiện vào `SNS Topic`, sự kiện được chuyển tiếp sang `SQS Queue`, và `notification-service` tiêu thụ hàng đợi để gửi thông báo xác nhận.
+
+![Sơ đồ luồng giao tiếp đồng bộ & bất đồng bộ](images/02-service-communication-flow.png)
 
 ```mermaid
 sequenceDiagram
