@@ -36,7 +36,9 @@ Kế hoạch phân bổ dải địa chỉ mạng CIDR cho VPC `10.0.0.0/16` bao
 
    ![Inbound rule của ALB SG](images/06-alb-ingress.png)
 
-   ![Cấu hình ECS SG](images/07-ecs-sg-draft.png)
+   ![Bản nháp ban đầu của ECS SG với cổng 8081 và 8082](images/07-ecs-sg-draft.png)
+
+   *Ảnh trên ghi lại bản nháp ban đầu, không phải cấu hình hiện tại. Ngày 10/10/2026, đã kiểm tra và cập nhật bằng AWS CLI: `hotel-booking-ecs-sg` (`sg-005ce5a54ed8d4ff2`) chỉ còn inbound TCP `8080` từ ALB SG (`sg-08119fcb3bd5f4f1d`). Các rule `8081` và `8082` đã được gỡ.*
 
    ![Cấu hình RDS SG](images/08-rds-sg-draft.png)
 
