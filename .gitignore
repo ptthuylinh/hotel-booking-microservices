@@ -5,4 +5,9 @@ target/
 *.log
 .env
 .aws/
-credentials
+credentials
+.venv/
+__pycache__/
+node_modules/
+*.tmp
+*.temp
