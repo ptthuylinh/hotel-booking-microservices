@@ -1,0 +1,38 @@
+sequenceDiagram
+    autonumber
+    participant Client as Client
+    participant ALB as Public ALB
+    participant Booking as booking-service (ECS private)
+    participant CloudMap as Cloud Map private DNS
+    participant Room as room-service (ECS private)
+    participant RoomDB as RDS room_db
+    participant BookingDB as RDS booking_db
+    participant Audit as DynamoDB audit log
+    participant SNS as SNS topic
+    participant SQS as SQS main queue
+    participant Notif as notification-service
+    participant DLQ as SQS dead-letter queue
+
+    Note over Client, ALB: ALB la diem vao cong khai cho client, ECS tasks khong gan public IP
+    Client->>ALB: POST /api/bookings
+    ALB->>Booking: Route request vao booking-service
+    Booking->>CloudMap: Resolve room-service.hotel.local
+    CloudMap-->>Booking: Private task IP trong VPC
+    Note over Booking, Room: REST noi bo TCP 8080, ECS-SG chi cho phep ECS-SG -> ECS-SG
+    Booking->>Room: PUT /api/rooms/{id}/status (RESERVED)
+    Room->>RoomDB: JDBC: cap nhat trang thai phong
+    RoomDB-->>Room: Commit
+    Room-->>Booking: 200 OK / 409 CONFLICT
+    Booking->>BookingDB: JDBC: luu booking
+    Booking->>Audit: PutItem (bookingId, timestamp, state)
+    Booking->>SNS: Publish BookingCreatedEvent
+    SNS->>SQS: Fanout subscription (raw message)
+    Notif->>SQS: Long poll / ReceiveMessage
+    SQS-->>Notif: BookingCreatedEvent
+    alt Notification sent successfully
+        Notif->>SQS: DeleteMessage (ACK)
+    else Fails after maxReceiveCount = 3
+        SQS-->>DLQ: Redrive poison message
+    end
+
+    Note over RoomDB, BookingDB: Mot RDS PostgreSQL instance chua hai logical database rieng biet, moi service chi ket noi database cua minh

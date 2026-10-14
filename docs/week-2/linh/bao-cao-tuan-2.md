@@ -11,7 +11,7 @@
 | Thành viên | Nhiệm vụ chính | Số giờ | Trạng thái |
 |---|---|---|---|
 | Phan Thị Thùy Linh (`24110271`) | Lập trình Backend Spring Boot (JPA, REST, Event SDK), Build & Push ECR Images `v1.0.0`, Kiểm thử thành phần | 9.0 giờ | Đang thực hiện |
-| Cao Hoàng Phúc (`24110303`) | Khởi tạo RDS (2 schemas), DynamoDB, SNS/SQS/DLQ, ALB Path-based Routing, ECS Cluster & Service | 9.0 giờ | Đang thực hiện |
+| Cao Hoàng Phúc (`24110303`) | Khởi tạo RDS (2 logical databases), DynamoDB, SNS/SQS/DLQ, ALB Path-based Routing, ECS Cluster & Service | 9.0 giờ | Đang thực hiện |
 
 ---
 

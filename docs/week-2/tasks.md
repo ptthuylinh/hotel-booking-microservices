@@ -14,7 +14,7 @@
 
 | STT | Thành viên | MSSV | Vai trò chính trong Tuần 2 | Số giờ dự kiến | Trạng thái |
 |:---:|---|:---:|---|:---:|:---:|
-| 1 | **Cao Hoàng Phúc** | `24110303` | **Cloud Infrastructure & DevOps:** Khởi tạo RDS (2 schemas), DynamoDB, SNS/SQS/DLQ, ALB Path-based Routing, ECS Cluster & Service. | 9.0 giờ | Đang thực hiện |
+| 1 | **Cao Hoàng Phúc** | `24110303` | **Cloud Infrastructure & DevOps:** Khởi tạo RDS (2 logical databases), DynamoDB, SNS/SQS/DLQ, ALB Path-based Routing, ECS Cluster & Service. | 9.0 giờ | Đang thực hiện |
 | 2 | **Phan Thị Thùy Linh** | `24110271` | **Backend & Containerization:** Viết code JPA, REST internal call, SNS Producer, SQS Listener, Docker Build & Push ECR Images (`v1.0.0`). | 9.0 giờ | Đang thực hiện |
 
 ---
@@ -125,7 +125,7 @@
 ## 🔄 QUY TRÌNH PHỐI HỢP LIÊN TỤC GIỮA 2 THÀNH VIÊN
 
 ```
-[BƯỚC 1 - Phúc]: Tạo RDS (2 schemas), DynamoDB, SNS Topic, SQS Queue & DLQ trên AWS
+[BƯỚC 1 - Phúc]: Tạo RDS (2 logical databases), DynamoDB, SNS Topic, SQS Queue & DLQ trên AWS
        │
        ▼ (Bàn giao: Database Host Endpoint, Credentials, SNS ARN, SQS URL)
 [BƯỚC 2 - Linh]: Viết code JPA, gọi REST nội bộ, cấu hình AWS SDK producer/consumer
@@ -149,7 +149,7 @@
 
 1. **Minh chứng Hạ tầng (Phúc):**
    - [ ] Ảnh 1: Amazon RDS Instance đang chạy (loại `db.t3.micro`, Private Subnet, tag đầy đủ).
-   - [ ] Ảnh 2: Hai schema/database `room_db` và `booking_db` trên RDS.
+   - [ ] Ảnh 2: Hai logical database `room_db` và `booking_db` trên cùng RDS PostgreSQL instance.
    - [ ] Ảnh 3: Bảng Amazon DynamoDB `hotel-booking-audit-logs` (Partition Key `bookingId`, Sort Key `timestamp`).
    - [ ] Ảnh 4: Amazon SNS Topic `hotel-booking-events` và Subscription liên kết tới SQS.
    - [ ] Ảnh 5: Amazon SQS Main Queue (`booking-notification-queue`) và Dead Letter Queue (`booking-notification-dlq`).

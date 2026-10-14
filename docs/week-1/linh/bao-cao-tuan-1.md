@@ -151,7 +151,8 @@ Em đã truy cập IAM Console để kiểm tra quyền hạn của **`LabRole`*
 
 ### 7.1. Đặc tả Communication Pattern
 1. **Giao tiếp đồng bộ (REST Service-to-Service):**
-   - Xác định rõ giao thức gọi nội bộ giữa `booking-service` và `room-service` qua DNS của ALB / Service Discovery trong VPC, bảo mật qua Security Group `ECS-SG`.
+   - Chọn AWS Cloud Map làm service discovery nội bộ với private DNS namespace `hotel.local`; `booking-service` gọi `http://room-service.hotel.local:8080/api/rooms/{id}` và `/api/rooms/{id}/status`. Cloud Map phân giải tên thành private IP của ECS task trong VPC; request service-to-service đi trực tiếp qua mạng riêng, không đi qua public ALB và không dùng public IP.
+   - Security Group `hotel-booking-ecs-sg` cho phép inbound TCP `8080` từ chính ECS SG (self-reference), ngoài rule nhận traffic từ ALB SG. Do đó chỉ các task thuộc ECS SG được gọi nội bộ; không mở port service ra Internet.
    - Xây dựng bảng API Contract với các endpoint `/api/rooms/{id}` và `/api/rooms/{id}/status`, chuẩn hóa định dạng request/response JSON và các mã lỗi phân tán (`200 OK`, `404 NOT_FOUND`, `409 CONFLICT`).
    - Thiết lập các tham số chịu lỗi phân tán: Connection timeout 3s, Read timeout 5s, Retry tối đa 2 lần với Exponential Backoff.
 2. **Giao tiếp bất đồng bộ (Event-Driven SNS/SQS):**
@@ -161,7 +162,7 @@ Em đã truy cập IAM Console để kiểm tra quyền hạn của **`LabRole`*
 ### 7.2. Đặc tả Database Strategy
 1. **Mô hình Database-per-Service:**
    - Đảm bảo tính độc lập dữ liệu tuyệt đối giữa các microservice.
-   - Giải quyết bài toán hạn mức tài nguyên trên AWS Learner Lab ($100 budget): Đề xuất sử dụng 1 instance Amazon RDS nhưng tách biệt thành 2 logical databases độc lập (`room_db` và `booking_db`), cấp phát user riêng biệt (`room_user` và `booking_user`) cấm truy cập chéo.
+   - Giải quyết bài toán hạn mức tài nguyên trên AWS Learner Lab ($100 budget): dùng 1 instance Amazon RDS PostgreSQL nhưng tách thành 2 logical database độc lập (database, không phải schema) là `room_db` và `booking_db`. Mỗi service dự kiến dùng login role riêng (`room_user`, `booking_user`) và chỉ được CONNECT/đọc/ghi trong database của mình; không cấp quyền truy cập chéo.
 2. **Thiết kế mô hình dữ liệu (Data Modeling):**
    - **Cơ sở dữ liệu quan hệ (RDS):** Thiết kế chi tiết cấu trúc bảng `rooms` cho `room-service` và bảng `bookings` cho `booking-service`.
    - **Cơ sở dữ liệu NoSQL (DynamoDB):** Thiết kế bảng `hotel-booking-audit-logs` với Partition Key `bookingId` và Sort Key `timestamp` phục vụ ghi nhận nhật ký trạng thái (Audit Trail) tốc độ cao mà không làm nghẽn RDS.
@@ -171,9 +172,11 @@ Em đã truy cập IAM Console để kiểm tra quyền hạn của **`LabRole`*
 
 ---
 
+> **Cập nhật triển khai ngày 14/10/2026:** Hai logical database rỗng `room_db` và `booking_db` đã được tạo trên RDS; chưa tạo login role/phân quyền và bảng nghiệp vụ. DynamoDB audit table, SNS Standard topic, SQS queue, DLQ (`maxReceiveCount = 3`) và subscription SNS→SQS đã được kiểm tra trên AWS. ECS cluster/service chưa tồn tại nên Cloud Map namespace/registration và REST nội bộ mới là thiết kế, chưa thể nghiệm thử lúc này. Xem sơ đồ luồng đã render tại [`../images/02-service-communication-flow.png`](../images/02-service-communication-flow.png) và mã nguồn Mermaid [`../communication-pattern.mmd`](../communication-pattern.mmd).
+
 ## 8. Kết quả đạt được và kế hoạch tuần tiếp theo
 
-Sau tuần 1, em đã hoàn thành toàn bộ các hạng mục công việc được giao theo đúng kế hoạch:
+Trong tuần 1, em đã hoàn thành các hạng mục nền tảng về mã nguồn, container và thiết kế kiến trúc. Phần triển khai AWS được cập nhật đến ngày 14/10/2026 ở trên; các hạng mục còn lại được ghi rõ trong kế hoạch tuần 2:
 - Khởi tạo thành công khung mã nguồn chuẩn cho 3 microservices độc lập (`room-service`, `booking-service`, `notification-service`).
 - Xây dựng Dockerfile chuẩn multi-stage tối ưu hóa kích thước image và tốc độ đóng gói.
 - Đóng gói và kiểm thử container thành công trên môi trường cục bộ (cổng map `9096:8080`), xác nhận cả hai endpoint `/api/rooms` và `/actuator/health` hoạt động ổn định.

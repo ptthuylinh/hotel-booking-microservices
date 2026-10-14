@@ -85,8 +85,8 @@ flowchart TB
 
                 subgraph DataLayer["Tầng Cơ Sở Dữ Liệu - Persistence (Private Subnet)"]
                     subgraph RDSInstance["Amazon RDS PostgreSQL - Single Instance (hotel-db-instance)"]
-                        RoomDB[("room_db (Schema riêng)<br/>User: room_user")]
-                        BookingDB[("booking_db (Schema riêng)<br/>User: booking_user")]
+                        RoomDB[("Logical database: room_db<br/>Login role dự kiến: room_user")]
+                        BookingDB[("Logical database: booking_db<br/>Login role dự kiến: booking_user")]
                     end
                 end
             end
@@ -97,6 +97,7 @@ flowchart TB
             SNSTopic["Amazon SNS Topic<br/>hotel-booking-events"]
             SQSQueue["Amazon SQS Queue<br/>booking-notification-queue"]
             SQSDLQ["Amazon SQS DLQ<br/>booking-notification-dlq"]
+            CloudMap["AWS Cloud Map Private DNS<br/>hotel.local<br/>room-service.hotel.local"]
         end
 
         subgraph Management["Dịch Vụ Hỗ Trợ Vận Hành và Giám Sát"]
@@ -116,7 +117,8 @@ flowchart TB
     ALB -->|"Route: /api/notifications*"| NotifSvc
 
     %% Service communication & persistence
-    BookingSvc -->|"Giao tiếp đồng bộ REST (Kiểm tra & khóa phòng)"| RoomSvc
+    BookingSvc -.->|"DNS lookup trong VPC"| CloudMap
+    BookingSvc -->|"REST nội bộ qua private IP: room-service.hotel.local:8080<br/>ECS-SG → ECS-SG TCP 8080"| RoomSvc
     RoomSvc -->|"Đọc/Ghi dữ liệu phòng (JDBC)"| RoomDB
     BookingSvc -->|"Lưu đơn đặt phòng (JDBC)"| BookingDB
     BookingSvc -.->|"Ghi Audit Trail (PutItem)"| DynamoDB
@@ -133,73 +135,64 @@ flowchart TB
     BookingSvc -.->|"Stream Logs & Metrics"| CloudWatch
     NotifSvc -.->|"Stream Logs & Metrics"| CloudWatch
     IAM -.->|"Cấp quyền TaskExecution"| ECSFargate
+    CloudMap -.->|"Đăng ký private task IP (không public IP)"| RoomSvc
 ```
+
+**Đường gọi nội bộ được chọn:** dùng AWS Cloud Map với private DNS namespace `hotel.local`; `booking-service` gọi `http://room-service.hotel.local:8080` để kiểm tra/giữ phòng. Cloud Map phân giải tên thành private IP của task trong VPC. Lưu lượng đi thẳng giữa các task qua cổng `8080`, được giới hạn bởi rule self-reference ECS-SG; ALB công khai chỉ là điểm vào cho client và không nằm trên đường gọi service-to-service. Các ECS task dự kiến chạy trong private subnet, không gán public IP.
+
+**Trạng thái triển khai:** AWS Console đã có rule ECS-SG cho TCP `8080` từ chính ECS-SG, nhưng tài khoản hiện chưa có ECS cluster/service nên private namespace, đăng ký Cloud Map và kiểm thử DNS/REST chưa được triển khai. Sơ đồ mô tả kiến trúc mục tiêu; không xem các phần chưa triển khai là tài nguyên đang chạy.
 
 ---
 
 ### 2. Sơ đồ luồng giao tiếp đồng bộ & bất đồng bộ (Service Communication & Event-Driven Flow)
 Mô tả chi tiết 2 cơ chế giao tiếp theo yêu cầu đề tài:
-- **Giao tiếp đồng bộ (Synchronous REST):** Khi Client đặt phòng, `booking-service` gọi REST trực tiếp sang `room-service` để xác nhận trạng thái phòng.
+- **Giao tiếp đồng bộ (Synchronous REST):** Khi Client đặt phòng, `booking-service` phân giải `room-service.hotel.local` bằng Cloud Map private DNS rồi gọi REST trực tiếp tới private IP của `room-service` qua TCP `8080` trong VPC. Request từ Client đi qua public ALB; service-to-service không đi qua public ALB và không dùng public IP.
 - **Giao tiếp bất đồng bộ (Asynchronous Event-Driven):** Sau khi đặt phòng thành công, `booking-service` gửi sự kiện vào `SNS Topic`, sự kiện được chuyển tiếp sang `SQS Queue`, và `notification-service` tiêu thụ hàng đợi để gửi thông báo xác nhận.
+- **Database Strategy:** Một RDS PostgreSQL instance chứa hai logical database độc lập (`room_db`, `booking_db`); mỗi service chỉ kết nối database của mình. Audit log ghi sang DynamoDB. Queue chính chuyển poison message sang DLQ sau 3 lần nhận lỗi.
 
 ![Sơ đồ luồng giao tiếp đồng bộ & bất đồng bộ](images/02-service-communication-flow.png)
+
+Nguồn Mermaid có thể chỉnh sửa: [`communication-pattern.mmd`](communication-pattern.mmd). Sơ đồ thể hiện kiến trúc mục tiêu; Cloud Map/ECS service discovery chưa triển khai vì ECS cluster chưa được tạo.
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor Client as Khách hàng (Client / Frontend)
-    participant ALB as Application Load Balancer
-    participant Booking as Booking Service (Port 8080)
-    participant Room as Room Service (Port 8080)
-    participant DB as Tầng Cơ Sở Dữ Liệu (RDS / DynamoDB)
-    participant SNS as Amazon SNS Topic (hotel-booking-events)
-    participant SQS as Amazon SQS Queue (booking-notification-queue)
-    participant DLQ as SQS Dead Letter Queue (booking-notification-dlq)
-    participant Notif as Notification Service (Port 8080)
-    participant CW as Amazon CloudWatch Logs
+    participant Client as Client
+    participant ALB as Public ALB
+    participant Booking as booking-service (ECS private)
+    participant CloudMap as Cloud Map private DNS
+    participant Room as room-service (ECS private)
+    participant RoomDB as RDS room_db
+    participant BookingDB as RDS booking_db
+    participant Audit as DynamoDB audit log
+    participant SNS as SNS topic
+    participant SQS as SQS main queue
+    participant Notif as notification-service
+    participant DLQ as SQS dead-letter queue
 
-    %% Bước 1: Tra cứu phòng
-    Note over Client, Room: Giai đoạn 1: Tra cứu và kiểm tra phòng (Đồng bộ - Sync REST)
-    Client->>ALB: GET /api/rooms
-    ALB->>Room: Path-based routing đến Room Service
-    Room->>DB: Truy vấn danh sách phòng khả dụng
-    DB-->>Room: Trả về dữ liệu phòng
-    Room-->>ALB: HTTP 200 OK (Danh sách phòng)
-    ALB-->>Client: Hiển thị thông tin phòng
-
-    %% Bước 2: Đặt phòng
-    Note over Client, SNS: Giai đoạn 2: Tạo đơn đặt phòng (Đồng bộ kết hợp Bất đồng bộ)
-    Client->>ALB: POST /api/bookings (Thông tin đặt phòng)
-    ALB->>Booking: Path-based routing đến Booking Service
-    Booking->>Room: REST call: GET /api/rooms/{id} (Kiểm tra và khóa phòng)
-    Room-->>Booking: Xác nhận phòng hợp lệ
-    Booking->>DB: Ghi nhận đơn đặt phòng (Trạng thái: PENDING/CONFIRMED)
-    DB-->>Booking: Ghi thành công
-    Booking->>SNS: Publish Message "BookingCreatedEvent"
-    SNS-->>Booking: Message Id xác nhận đã tiếp nhận
-    Booking-->>ALB: HTTP 201 Created (Đã tiếp nhận đặt phòng)
-    ALB-->>Client: Trả kết quả đặt phòng thành công
-
-    %% Bước 3: Xử lý thông báo bất đồng bộ
-    Note over SNS, DLQ: Giai đoạn 3: Xử lý thông báo xác nhận (Bất đồng bộ - Async SQS/SNS & DLQ)
-    SNS->>SQS: Tự động chuyển tiếp message sang hàng đợi (Fanout)
-    loop Polling hàng đợi định kỳ
-        Notif->>SQS: Long polling kiểm tra tin nhắn mới
-    end
-    SQS-->>Notif: Trả về Message "BookingCreatedEvent"
-    alt Xử lý thành công
-        Notif->>Notif: Gửi thông báo xác nhận (Email / SMS Mock)
-        Notif->>SQS: Xóa message khỏi Queue (ACK)
-    else Xử lý thất bại (Retry > 3 lần)
-        SQS->>DLQ: Tự động chuyển message sang DLQ (Redrive Policy maxReceiveCount=3)
-        DLQ-)CW: Cảnh báo quản trị viên về Poison Message
+    Note over Client, ALB: ALB la diem vao cong khai cho client, ECS tasks khong gan public IP
+    Client->>ALB: POST /api/bookings
+    ALB->>Booking: Route request vao booking-service
+    Booking->>CloudMap: Resolve room-service.hotel.local
+    CloudMap-->>Booking: Private task IP trong VPC
+    Note over Booking, Room: REST noi bo TCP 8080, ECS-SG chi cho phep ECS-SG -> ECS-SG
+    Booking->>Room: PUT /api/rooms/{id}/status (RESERVED)
+    Room->>RoomDB: JDBC: cap nhat trang thai phong
+    RoomDB-->>Room: Commit
+    Room-->>Booking: 200 OK / 409 CONFLICT
+    Booking->>BookingDB: JDBC: luu booking
+    Booking->>Audit: PutItem (bookingId, timestamp, state)
+    Booking->>SNS: Publish BookingCreatedEvent
+    SNS->>SQS: Fanout subscription (raw message)
+    Notif->>SQS: Long poll / ReceiveMessage
+    SQS-->>Notif: BookingCreatedEvent
+    alt Notification sent successfully
+        Notif->>SQS: DeleteMessage (ACK)
+    else Fails after maxReceiveCount = 3
+        SQS-->>DLQ: Redrive poison message
     end
 
-    %% Logging tập trung
-    Note over Room, CW: Giám sát tập trung (Observability)
-    Room-)CW: Push log luồng xử lý phòng
-    Booking-)CW: Push log luồng đặt phòng
-    Notif-)CW: Push log thông báo
+    Note over RoomDB, BookingDB: Mot RDS PostgreSQL instance chua hai logical database rieng biet, moi service chi ket noi database cua minh
 ```
 
 ---
@@ -225,7 +218,8 @@ sequenceDiagram
 | **Private Subnet 1** | `subnet-private-1` | `10.0.11.0/24` | `us-east-1a` | Chứa ECS Fargate Tasks & Data layer (Nội bộ) |
 | **Private Subnet 2** | `subnet-private-2` | `10.0.12.0/24` | `us-east-1b` | Chứa ECS Fargate Tasks & Data layer (Nội bộ) |
 | **ALB-SG** | `sg-hotel-alb` | Inbound: `80, 443` (`0.0.0.0/0`) | - | Nhận request từ Internet và chuyển tiếp nội bộ |
-| **ECS-SG** | `sg-hotel-ecs` | Inbound: `8080` (Từ `ALB-SG`) | - | ECS SG chỉ nhận cổng 8080 từ ALB SG, chặn hoàn toàn truy cập ngoài |
+| **ECS-SG** | `sg-hotel-ecs` | Inbound: TCP `8080` từ `ALB-SG` và từ chính `ECS-SG` | - | ALB chuyển request client vào service; self-reference cho phép Booking gọi Room qua private IP/DNS trong VPC, không mở cổng service ra Internet |
+| **RDS-SG** | `sg-hotel-rds` | Inbound: TCP `5432` từ `ECS-SG` | - | Chỉ workload ECS được kết nối PostgreSQL; không cho phép truy cập công khai |
 
 ---
 
@@ -237,7 +231,7 @@ Hệ thống kết hợp cả hai mô hình truyền thông: **Đồng bộ (Syn
 #### 5.1. Mô hình giao tiếp đồng bộ (Synchronous REST: Booking ➡️ Room)
 Khi nhận yêu cầu tạo đơn từ khách hàng, `booking-service` gọi REST trực tiếp sang `room-service` trong mạng nội bộ VPC để kiểm tra trạng thái phòng và thực hiện khóa phòng (reserve):
 
-- **Đường truyền nội bộ:** Sử dụng DNS nội bộ qua Application Load Balancer hoặc AWS Cloud Map Service Discovery. Kết nối được bảo vệ hoàn toàn bởi `ECS-SG`, không mở ra Internet.
+- **Đường truyền nội bộ (phương án đã chọn):** AWS Cloud Map private DNS namespace `hotel.local`, tên dịch vụ `room-service.hotel.local`. `booking-service` gọi REST tại `http://room-service.hotel.local:8080`; DNS phân giải tới private IP task trong VPC, không đi qua public ALB và không dùng public IP. ECS-SG giới hạn TCP `8080` từ chính ECS-SG. Rule self-reference này đã có trên `hotel-booking-ecs-sg`; Cloud Map và ECS service registration chưa triển khai vì ECS cluster/service hiện chưa tồn tại.
 - **Bảng đặc tả API Contract giữa các Service:**
 
 | Phương thức | Endpoint | Service đích | Mục đích | Request Payload | Response mẫu | Mã HTTP |
@@ -315,10 +309,12 @@ Sau khi `booking-service` ghi nhận đơn đặt phòng thành công vào cơ s
 - **Nguyên tắc cốt lõi Microservices:** Mỗi dịch vụ phải tự làm chủ dữ liệu của mình (Loose Coupling). Tuyệt đối cấm các dịch vụ truy vấn hoặc join bảng trực tiếp sang database của dịch vụ khác.
 - **Ràng buộc hạ tầng AWS Learner Lab:** Hạn mức ngân sách cố định $100 và số lượng RDS instances bị giới hạn (tối đa 1–2 DB instance loại nhỏ). Nếu tạo riêng biệt 3 RDS instance cho 3 microservices sẽ gây cạn kiệt tài nguyên vCPU và chi phí vượt định mức.
 - **Giải pháp cách ly logic (Logical Database Isolation):**
-  - Nhóm khởi tạo **1 RDS PostgreSQL/MySQL Instance** (`hotel-db-instance`, cấu hình `db.t3.micro` / `db.t4g.micro`), nhưng phân tách thành **2 Logical Database / Schemas độc lập**:
-    - `room_db`: Cấp quyền sở hữu duy nhất cho tài khoản `room_user`.
-    - `booking_db`: Cấp quyền sở hữu duy nhất cho tài khoản `booking_user`.
-  - Tài khoản `room_user` không có bất kỳ quyền hạn nào trên `booking_db` và ngược lại. Giải pháp này đáp ứng trọn vẹn nguyên lý phân quyền, bảo mật của Microservices mà vẫn tối ưu chi phí trong khuôn khổ môn học.
+  - Nhóm sử dụng **1 RDS PostgreSQL instance** (`hotel-db-instance`) để tiết kiệm hạn mức, nhưng tạo **2 logical database riêng biệt** (database, không phải schema):
+    - `room_db`: mục tiêu cấp quyền kết nối cho login role `room_user`.
+    - `booking_db`: mục tiêu cấp quyền kết nối cho login role `booking_user`.
+  - Sau khi tạo các login role, `room_user` sẽ không có quyền trên `booking_db` và `booking_user` sẽ không có quyền trên `room_db`. Đây là phân quyền mục tiêu; tại thời điểm cập nhật, hai role này chưa được tạo.
+
+**Trạng thái AWS ngày 14/10/2026:** Hai database rỗng `room_db` và `booking_db` đã được tạo và xác minh trên RDS. Chưa tạo/xác minh hai login role, quyền sở hữu riêng hoặc bảng nghiệp vụ; không khẳng định hiện đã có phân quyền tách biệt ở tầng PostgreSQL.
 
 #### 6.2. Sơ đồ dữ liệu quan hệ & NoSQL (Data Model & ERD Diagram)
 
