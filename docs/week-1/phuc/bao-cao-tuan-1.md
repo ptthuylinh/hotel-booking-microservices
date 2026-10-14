@@ -9,7 +9,7 @@
 **Repository:** https://github.com/pttlinh32/hotel-booking-microservices  
 **Ngày thực hiện:** 09/10/2026
 
-> **Cập nhật bổ sung ngày 14/10/2026:** Sau báo cáo tuần 1, em đã dùng EC2 tạm trong VPC để kết nối tới RDS PostgreSQL `hotel-db-instance` và tạo thành công hai logical database `room_db` và `booking_db`. Đã xác minh cả hai database tồn tại. Sau khi khởi tạo, rule truy cập tạm từ EC2 đã được gỡ; RDS Security Group chỉ còn cho phép ECS Security Group truy cập cổng PostgreSQL `5432`. EC2 khởi tạo đã được gửi lệnh dừng và đang chuyển trạng thái dừng. Đây là cập nhật tiến độ hạ tầng, không thay đổi thời điểm thực hiện các công việc tuần 1 nêu bên dưới.
+> **Cập nhật bổ sung ngày 14/10/2026:** RDS PostgreSQL `hotel-db-instance` nằm trong private subnet nên máy cá nhân không có đường mạng trực tiếp tới endpoint. AWS Academy Learner Lab không cung cấp sẵn kết nối VPN/đường truy cập từ máy cá nhân vào VPC cho trường hợp này; CloudShell cũng không nằm trong VPC để kết nối trực tiếp tới RDS. Vì vậy, em tạo EC2 tạm trong VPC, cài `psql` và dùng EC2 làm máy quản trị để khởi tạo database. Đã tạo và xác minh hai logical database `room_db` và `booking_db`. Sau khi khởi tạo, rule truy cập tạm từ EC2 đã được gỡ; RDS Security Group chỉ còn cho phép ECS Security Group truy cập cổng PostgreSQL `5432`. EC2 khởi tạo đã được gửi lệnh dừng và đang chuyển trạng thái dừng. Đây là cập nhật tiến độ hạ tầng, không thay đổi thời điểm thực hiện các công việc tuần 1 nêu bên dưới.
 
 > **Phạm vi đã hoàn tất:** Mới tạo hai database rỗng. Tạo user riêng `room_user`/`booking_user`, thiết lập quyền truy cập riêng và tạo bảng nghiệp vụ vẫn cần thực hiện; bảng DynamoDB `hotel-booking-audit-logs` cùng SNS/SQS và DLQ cũng chưa được xác nhận triển khai trong cập nhật này.
 
