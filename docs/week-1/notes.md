@@ -20,7 +20,7 @@
 - **Routing:** Internet Gateway kết nối Public Route Table; Private Route Table điều hướng nội bộ.
 - **Security Groups:**
   - `ALB-SG`: Cho phép Inbound port 80/443 từ mọi nơi (`0.0.0.0/0`).
-  - `ECS-SG`: Chỉ cho phép Inbound từ `ALB-SG` qua các cổng dịch vụ nội bộ.
+  - `ECS-SG`: ECS SG chỉ nhận cổng 8080 từ ALB SG.
 - **Resource Tagging:** Tất cả tài nguyên được gán tag `Project=hotel-booking-microservices` và `Owner=<MSSV người tạo tài nguyên>` (Linh: 24110271, Phúc: 24110303).
 
 ### 2. Dịch vụ & Containerization (Thành viên 2 - Phan Thị Thùy Linh)
@@ -35,3 +35,8 @@
   - `hotel-booking-service`
   - `hotel-notification-service`
 - **Kiểm thử local:** Build và chạy thử nghiệm container thành công trên máy trước khi push.
+- **Đặc tả kiến trúc dữ liệu & truyền thông:**
+  - Chuẩn hóa REST API Contract giữa `booking-service` và `room-service` kèm timeout/retry.
+  - Chuẩn hóa CloudEvents Schema cho sự kiện `BookingCreatedEvent` (SNS/SQS), cơ chế DLQ và Idempotency.
+  - Thiết kế chiến lược Database-per-service (logical isolation: `room_db`, `booking_db`), ERD RDS và bảng Audit Logs trên DynamoDB.
+

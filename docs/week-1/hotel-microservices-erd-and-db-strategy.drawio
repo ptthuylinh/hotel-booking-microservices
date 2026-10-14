@@ -1,0 +1,217 @@
+<mxfile host="app.diagrams.net" modified="2026-10-14T16:18:00.000Z" agent="Antigravity" version="21.0.0" type="device">
+  <diagram id="erd-logical-hotel" name="ERD Logical">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1450" pageHeight="860" background="#FFFFFF" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- TITLE -->
+        <mxCell id="title" value="ERD Logical — Hệ thống Đặt phòng Khách sạn" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=15;fontStyle=1;fontFamily=Helvetica;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="500" y="20" width="370" height="30" as="geometry"/>
+        </mxCell>
+
+        <!-- ==================== TABLE 1: loai_phong ==================== -->
+        <mxCell id="t_loai_phong" value="loai_phong" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#E55934;strokeColor=#B33C24;fontColor=#FFFFFF;fontFamily=Helvetica;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="70" width="260" height="135" as="geometry"/>
+        </mxCell>
+        <mxCell id="c_loai_phong" value="&lt;b&gt;&lt;font color=&quot;#C2185B&quot;&gt;PK&lt;/font&gt; id&lt;/b&gt; : BIGSERIAL&lt;br&gt;ten_loai : VARCHAR(50) UNIQUE NOT NULL&lt;br&gt;mo_ta : TEXT NULL&lt;br&gt;suc_chua : INT NOT NULL&lt;br&gt;gia_mot_dem : DECIMAL(12,2) NOT NULL" style="text;strokeColor=none;fillColor=#FFF8F6;align=left;verticalAlign=top;spacingLeft=8;spacingRight=8;spacingTop=6;spacingBottom=6;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=11;lineHeight=1.5;" vertex="1" parent="t_loai_phong">
+          <mxGeometry y="26" width="260" height="109" as="geometry"/>
+        </mxCell>
+
+        <!-- ==================== TABLE 2: phong ==================== -->
+        <mxCell id="t_phong" value="phong" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#E55934;strokeColor=#B33C24;fontColor=#FFFFFF;fontFamily=Helvetica;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="280" width="260" height="175" as="geometry"/>
+        </mxCell>
+        <mxCell id="c_phong" value="&lt;b&gt;&lt;font color=&quot;#C2185B&quot;&gt;PK&lt;/font&gt; id&lt;/b&gt; : BIGSERIAL&lt;br&gt;&lt;b&gt;&lt;font color=&quot;#2E7D32&quot;&gt;FK&lt;/font&gt; loai_phong_id&lt;/b&gt; : BIGINT NOT NULL&lt;br&gt;so_phong : VARCHAR(20) UNIQUE NOT NULL&lt;br&gt;tang : INT NOT NULL&lt;br&gt;trang_thai : VARCHAR(30) NOT NULL&lt;br&gt;ngay_tao : DATETIME DEFAULT NOW()&lt;br&gt;ngay_cap_nhat : DATETIME DEFAULT NOW()" style="text;strokeColor=none;fillColor=#FFF8F6;align=left;verticalAlign=top;spacingLeft=8;spacingRight=8;spacingTop=6;spacingBottom=6;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=11;lineHeight=1.5;" vertex="1" parent="t_phong">
+          <mxGeometry y="26" width="260" height="149" as="geometry"/>
+        </mxCell>
+
+        <!-- ==================== TABLE 3: khach_hang ==================== -->
+        <mxCell id="t_khach_hang" value="khach_hang" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#E55934;strokeColor=#B33C24;fontColor=#FFFFFF;fontFamily=Helvetica;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="400" y="70" width="270" height="155" as="geometry"/>
+        </mxCell>
+        <mxCell id="c_khach_hang" value="&lt;b&gt;&lt;font color=&quot;#C2185B&quot;&gt;PK&lt;/font&gt; id&lt;/b&gt; : VARCHAR(36)&lt;br&gt;ho_ten : VARCHAR(100) NOT NULL&lt;br&gt;email : VARCHAR(150) UNIQUE NOT NULL&lt;br&gt;so_dien_thoai : VARCHAR(20) NOT NULL&lt;br&gt;cmnd_cccd : VARCHAR(20) NULL&lt;br&gt;ngay_tao : DATETIME DEFAULT NOW()" style="text;strokeColor=none;fillColor=#FFF8F6;align=left;verticalAlign=top;spacingLeft=8;spacingRight=8;spacingTop=6;spacingBottom=6;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=11;lineHeight=1.5;" vertex="1" parent="t_khach_hang">
+          <mxGeometry y="26" width="270" height="129" as="geometry"/>
+        </mxCell>
+
+        <!-- ==================== TABLE 4: dat_phong ==================== -->
+        <mxCell id="t_dat_phong" value="dat_phong" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#E55934;strokeColor=#B33C24;fontColor=#FFFFFF;fontFamily=Helvetica;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="400" y="280" width="290" height="235" as="geometry"/>
+        </mxCell>
+        <mxCell id="c_dat_phong" value="&lt;b&gt;&lt;font color=&quot;#C2185B&quot;&gt;PK&lt;/font&gt; id&lt;/b&gt; : VARCHAR(36)&lt;br&gt;so_dat_phong : VARCHAR(30) UNIQUE NOT NULL&lt;br&gt;&lt;b&gt;&lt;font color=&quot;#2E7D32&quot;&gt;FK&lt;/font&gt; khach_hang_id&lt;/b&gt; : VARCHAR(36) NOT NULL&lt;br&gt;&lt;b&gt;&lt;font color=&quot;#2E7D32&quot;&gt;FK&lt;/font&gt; phong_id&lt;/b&gt; : BIGINT NOT NULL&lt;br&gt;ngay_nhan_phong : DATE NOT NULL&lt;br&gt;ngay_tra_phong : DATE NOT NULL&lt;br&gt;so_dem : INT NOT NULL&lt;br&gt;tong_tien : DECIMAL(12,2) NOT NULL&lt;br&gt;trang_thai : VARCHAR(30) NOT NULL&lt;br&gt;ngay_tao : DATETIME DEFAULT NOW()&lt;br&gt;ngay_cap_nhat : DATETIME DEFAULT NOW()" style="text;strokeColor=none;fillColor=#FFF8F6;align=left;verticalAlign=top;spacingLeft=8;spacingRight=8;spacingTop=6;spacingBottom=6;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=11;lineHeight=1.5;" vertex="1" parent="t_dat_phong">
+          <mxGeometry y="26" width="290" height="209" as="geometry"/>
+        </mxCell>
+
+        <!-- ==================== TABLE 5: thong_bao ==================== -->
+        <mxCell id="t_thong_bao" value="thong_bao" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#E55934;strokeColor=#B33C24;fontColor=#FFFFFF;fontFamily=Helvetica;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="760" y="70" width="270" height="155" as="geometry"/>
+        </mxCell>
+        <mxCell id="c_thong_bao" value="&lt;b&gt;&lt;font color=&quot;#C2185B&quot;&gt;PK&lt;/font&gt; id&lt;/b&gt; : VARCHAR(36)&lt;br&gt;&lt;b&gt;&lt;font color=&quot;#2E7D32&quot;&gt;FK&lt;/font&gt; dat_phong_id&lt;/b&gt; : VARCHAR(36) NOT NULL&lt;br&gt;loai_thong_bao : VARCHAR(20) NOT NULL&lt;br&gt;tieu_de : VARCHAR(200) NOT NULL&lt;br&gt;nguoi_nhan : VARCHAR(150) NOT NULL&lt;br&gt;trang_thai : VARCHAR(30) NOT NULL&lt;br&gt;thoi_gian_gui : DATETIME DEFAULT NOW()" style="text;strokeColor=none;fillColor=#FFF8F6;align=left;verticalAlign=top;spacingLeft=8;spacingRight=8;spacingTop=6;spacingBottom=6;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=11;lineHeight=1.5;" vertex="1" parent="t_thong_bao">
+          <mxGeometry y="26" width="270" height="129" as="geometry"/>
+        </mxCell>
+
+        <!-- ==================== TABLE 6: thanh_toan ==================== -->
+        <mxCell id="t_thanh_toan" value="thanh_toan" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#E55934;strokeColor=#B33C24;fontColor=#FFFFFF;fontFamily=Helvetica;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="760" y="280" width="270" height="175" as="geometry"/>
+        </mxCell>
+        <mxCell id="c_thanh_toan" value="&lt;b&gt;&lt;font color=&quot;#C2185B&quot;&gt;PK&lt;/font&gt; id&lt;/b&gt; : VARCHAR(36)&lt;br&gt;&lt;b&gt;&lt;font color=&quot;#2E7D32&quot;&gt;FK&lt;/font&gt; dat_phong_id&lt;/b&gt; : VARCHAR(36) UNIQUE NOT NULL&lt;br&gt;phuong_thuc : VARCHAR(30) NOT NULL&lt;br&gt;so_tien : DECIMAL(12,2) NOT NULL&lt;br&gt;trang_thai : VARCHAR(30) NOT NULL&lt;br&gt;ma_giao_dich : VARCHAR(100) UNIQUE NULL&lt;br&gt;thoi_gian : DATETIME DEFAULT NOW()" style="text;strokeColor=none;fillColor=#FFF8F6;align=left;verticalAlign=top;spacingLeft=8;spacingRight=8;spacingTop=6;spacingBottom=6;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=11;lineHeight=1.5;" vertex="1" parent="t_thanh_toan">
+          <mxGeometry y="26" width="270" height="149" as="geometry"/>
+        </mxCell>
+
+        <!-- ==================== TABLE 7: dich_vu ==================== -->
+        <mxCell id="t_dich_vu" value="dich_vu" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#E55934;strokeColor=#B33C24;fontColor=#FFFFFF;fontFamily=Helvetica;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="70" width="270" height="135" as="geometry"/>
+        </mxCell>
+        <mxCell id="c_dich_vu" value="&lt;b&gt;&lt;font color=&quot;#C2185B&quot;&gt;PK&lt;/font&gt; id&lt;/b&gt; : VARCHAR(36)&lt;br&gt;ten_dich_vu : VARCHAR(100) UNIQUE NOT NULL&lt;br&gt;don_gia : DECIMAL(12,2) NOT NULL&lt;br&gt;don_vi : VARCHAR(20) NOT NULL&lt;br&gt;trang_thai : VARCHAR(30) NOT NULL" style="text;strokeColor=none;fillColor=#FFF8F6;align=left;verticalAlign=top;spacingLeft=8;spacingRight=8;spacingTop=6;spacingBottom=6;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=11;lineHeight=1.5;" vertex="1" parent="t_dich_vu">
+          <mxGeometry y="26" width="270" height="109" as="geometry"/>
+        </mxCell>
+
+        <!-- ==================== TABLE 8: chi_tiet_dich_vu ==================== -->
+        <mxCell id="t_chi_tiet_dich_vu" value="chi_tiet_dich_vu" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#E55934;strokeColor=#B33C24;fontColor=#FFFFFF;fontFamily=Helvetica;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="280" width="270" height="175" as="geometry"/>
+        </mxCell>
+        <mxCell id="c_chi_tiet_dich_vu" value="&lt;b&gt;&lt;font color=&quot;#C2185B&quot;&gt;PK&lt;/font&gt; id&lt;/b&gt; : VARCHAR(36)&lt;br&gt;&lt;b&gt;&lt;font color=&quot;#2E7D32&quot;&gt;FK&lt;/font&gt; dat_phong_id&lt;/b&gt; : VARCHAR(36) NOT NULL&lt;br&gt;&lt;b&gt;&lt;font color=&quot;#2E7D32&quot;&gt;FK&lt;/font&gt; dich_vu_id&lt;/b&gt; : VARCHAR(36) NOT NULL&lt;br&gt;so_luong : INT NOT NULL (CHECK &amp;gt; 0)&lt;br&gt;don_gia : DECIMAL(12,2) NOT NULL&lt;br&gt;thanh_tien : DECIMAL(12,2) NOT NULL&lt;br&gt;ghi_chu : VARCHAR(255) NULL" style="text;strokeColor=none;fillColor=#FFF8F6;align=left;verticalAlign=top;spacingLeft=8;spacingRight=8;spacingTop=6;spacingBottom=6;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=11;lineHeight=1.5;" vertex="1" parent="t_chi_tiet_dich_vu">
+          <mxGeometry y="26" width="270" height="149" as="geometry"/>
+        </mxCell>
+
+        <!-- ==================== TABLE 9: nhat_ky_trang_thai ==================== -->
+        <mxCell id="t_nhat_ky" value="nhat_ky_trang_thai (DynamoDB)" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#E55934;strokeColor=#B33C24;fontColor=#FFFFFF;fontFamily=Helvetica;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="400" y="580" width="290" height="195" as="geometry"/>
+        </mxCell>
+        <mxCell id="c_nhat_ky" value="&lt;b&gt;&lt;font color=&quot;#C2185B&quot;&gt;PK&lt;/font&gt; booking_id&lt;/b&gt; : VARCHAR(36) [Partition Key]&lt;br&gt;&lt;b&gt;&lt;font color=&quot;#1565C0&quot;&gt;SK&lt;/font&gt; thoi_gian&lt;/b&gt; : VARCHAR(30) [Sort Key]&lt;br&gt;ma_nhat_ky : VARCHAR(36) NOT NULL&lt;br&gt;hanh_dong : VARCHAR(50) NOT NULL&lt;br&gt;trang_thai_truoc : VARCHAR(30) NULL&lt;br&gt;trang_thai_moi : VARCHAR(30) NOT NULL&lt;br&gt;nguoi_thuc_hien : VARCHAR(50) NOT NULL&lt;br&gt;chi_tiet : TEXT / JSON NULL" style="text;strokeColor=none;fillColor=#FFF8F6;align=left;verticalAlign=top;spacingLeft=8;spacingRight=8;spacingTop=6;spacingBottom=6;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=11;lineHeight=1.5;" vertex="1" parent="t_nhat_ky">
+          <mxGeometry y="26" width="290" height="169" as="geometry"/>
+        </mxCell>
+
+        <!-- ==================== RELATIONSHIPS & CARDINALITIES ==================== -->
+
+        <!-- loai_phong (1) - (N) phong -->
+        <mxCell id="rel_loai_phong_phong" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#333333;strokeWidth=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="t_loai_phong" target="t_phong">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="lbl_rel_1_1" value="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" connectable="0" parent="rel_loai_phong_phong">
+          <mxGeometry x="-0.75" y="0" relative="1" as="geometry">
+            <mxPoint x="12" y="5" as="offset"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lbl_rel_1_n" value="N" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" connectable="0" parent="rel_loai_phong_phong">
+          <mxGeometry x="0.75" y="0" relative="1" as="geometry">
+            <mxPoint x="12" y="-5" as="offset"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- phong (1) - (N) dat_phong -->
+        <mxCell id="rel_phong_dat_phong" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#333333;strokeWidth=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="t_phong" target="t_dat_phong">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="lbl_rel_2_1" value="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" connectable="0" parent="rel_phong_dat_phong">
+          <mxGeometry x="-0.75" y="0" relative="1" as="geometry">
+            <mxPoint x="5" y="-12" as="offset"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lbl_rel_2_n" value="N" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" connectable="0" parent="rel_phong_dat_phong">
+          <mxGeometry x="0.75" y="0" relative="1" as="geometry">
+            <mxPoint x="-5" y="-12" as="offset"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- khach_hang (1) - (N) dat_phong -->
+        <mxCell id="rel_khach_hang_dat_phong" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#333333;strokeWidth=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="t_khach_hang" target="t_dat_phong">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="lbl_rel_3_1" value="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" connectable="0" parent="rel_khach_hang_dat_phong">
+          <mxGeometry x="-0.7" y="0" relative="1" as="geometry">
+            <mxPoint x="12" y="5" as="offset"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lbl_rel_3_n" value="N" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" connectable="0" parent="rel_khach_hang_dat_phong">
+          <mxGeometry x="0.7" y="0" relative="1" as="geometry">
+            <mxPoint x="12" y="-5" as="offset"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- dat_phong (1) - (1) thanh_toan -->
+        <mxCell id="rel_dat_phong_thanh_toan" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#333333;strokeWidth=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="t_dat_phong" target="t_thanh_toan">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="lbl_rel_4_1a" value="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" connectable="0" parent="rel_dat_phong_thanh_toan">
+          <mxGeometry x="-0.75" y="0" relative="1" as="geometry">
+            <mxPoint x="5" y="-12" as="offset"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lbl_rel_4_1b" value="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" connectable="0" parent="rel_dat_phong_thanh_toan">
+          <mxGeometry x="0.75" y="0" relative="1" as="geometry">
+            <mxPoint x="-5" y="-12" as="offset"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- dat_phong (1) - (N) thong_bao -->
+        <mxCell id="rel_dat_phong_thong_bao" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#333333;strokeWidth=1;exitX=0.8;exitY=0;entryX=0.5;entryY=1;" edge="1" parent="1" source="t_dat_phong" target="t_thong_bao">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="lbl_rel_5_1" value="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" connectable="0" parent="rel_dat_phong_thong_bao">
+          <mxGeometry x="-0.7" y="0" relative="1" as="geometry">
+            <mxPoint x="12" y="-5" as="offset"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lbl_rel_5_n" value="N" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" connectable="0" parent="rel_dat_phong_thong_bao">
+          <mxGeometry x="0.7" y="0" relative="1" as="geometry">
+            <mxPoint x="12" y="5" as="offset"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- dich_vu (1) - (N) chi_tiet_dich_vu -->
+        <mxCell id="rel_dich_vu_chi_tiet" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#333333;strokeWidth=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="t_dich_vu" target="t_chi_tiet_dich_vu">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="lbl_rel_6_1" value="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" connectable="0" parent="rel_dich_vu_chi_tiet">
+          <mxGeometry x="-0.7" y="0" relative="1" as="geometry">
+            <mxPoint x="12" y="5" as="offset"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lbl_rel_6_n" value="N" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" connectable="0" parent="rel_dich_vu_chi_tiet">
+          <mxGeometry x="0.7" y="0" relative="1" as="geometry">
+            <mxPoint x="12" y="-5" as="offset"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- dat_phong (1) - (N) chi_tiet_dich_vu -->
+        <mxCell id="rel_dat_phong_chi_tiet" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#333333;strokeWidth=1;exitX=1;exitY=0.8;entryX=0;entryY=0.8;" edge="1" parent="1" source="t_dat_phong" target="t_chi_tiet_dich_vu">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="730" y="468"/>
+              <mxPoint x="730" y="500"/>
+              <mxPoint x="1070" y="500"/>
+              <mxPoint x="1070" y="422"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lbl_rel_7_1" value="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" connectable="0" parent="rel_dat_phong_chi_tiet">
+          <mxGeometry x="-0.85" y="0" relative="1" as="geometry">
+            <mxPoint x="5" y="-10" as="offset"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lbl_rel_7_n" value="N" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" connectable="0" parent="rel_dat_phong_chi_tiet">
+          <mxGeometry x="0.85" y="0" relative="1" as="geometry">
+            <mxPoint x="-5" y="-10" as="offset"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- dat_phong (1) - (N) nhat_ky_trang_thai -->
+        <mxCell id="rel_dat_phong_nhat_ky" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#333333;strokeWidth=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="t_dat_phong" target="t_nhat_ky">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="lbl_rel_8_1" value="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" connectable="0" parent="rel_dat_phong_nhat_ky">
+          <mxGeometry x="-0.7" y="0" relative="1" as="geometry">
+            <mxPoint x="12" y="5" as="offset"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lbl_rel_8_n" value="N" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" connectable="0" parent="rel_dat_phong_nhat_ky">
+          <mxGeometry x="0.7" y="0" relative="1" as="geometry">
+            <mxPoint x="12" y="-5" as="offset"/>
+          </mxGeometry>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
