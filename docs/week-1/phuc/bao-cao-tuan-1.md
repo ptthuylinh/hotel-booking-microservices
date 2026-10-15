@@ -48,22 +48,22 @@ Kế hoạch phân bổ dải địa chỉ mạng CIDR cho VPC `10.0.0.0/16` bao
 
 **Kết quả:** VPC, subnet, Internet Gateway, route table và security group đã sẵn sàng làm nền cho ALB, ECS Fargate và RDS ở các tuần tiếp theo.
 
-## Nghiên cứu dịch vụ [Phúc kiểm tra và chỉnh lại]
+## Nghiên cứu dịch vụ
 
 1. **AWS ECS Fargate:**
    - Dịch vụ tính toán serverless cho container, loại bỏ gánh nặng phải tự quản lý, vá lỗi hay mở rộng các máy chủ EC2 bên dưới.
    - Cho phép định nghĩa Task Definition với cấu hình tài nguyên chi tiết (CPU, RAM), thiết lập port mapping `8080` và chỉ định `LabRole` thực thi.
-   - Thích hợp cho kiến trúc microservices nhờ khả năng khởi chạy độc lập và dễ dàng scale về 0 khi không sử dụng nhằm tiết kiệm ngân sách Lab. [Phúc kiểm tra và chỉnh lại]
+   - Thích hợp cho kiến trúc microservices nhờ khả năng khởi chạy độc lập và dễ dàng scale về 0 khi không sử dụng nhằm tiết kiệm ngân sách Lab.
 
 2. **Application Load Balancer (ALB) & Path-based Routing:**
    - Cung cấp điểm vào công khai duy nhất tiếp nhận request từ người dùng và phân phối lưu lượng đến các Target Group phù hợp.
    - Sử dụng luật định tuyến theo đường dẫn (Path-based Routing): `/api/rooms` dẫn tới `room-service`, `/api/bookings` dẫn tới `booking-service`, `/api/notifications` dẫn tới `notification-service`.
-   - Kiểm tra sức khỏe tự động qua cấu hình health check endpoint `/actuator/health` để đảm bảo lưu lượng chỉ gửi tới container lành mạnh. [Phúc kiểm tra và chỉnh lại]
+   - Kiểm tra sức khỏe tự động qua cấu hình health check endpoint `/actuator/health` để đảm bảo lưu lượng chỉ gửi tới container lành mạnh.
 
 3. **Amazon CloudWatch Logs:**
    - Thu thập, giám sát và lưu trữ tập trung luồng stdout/stderr từ các task chạy trên ECS Fargate qua `awslogs` driver.
    - Hỗ trợ việc truy vết lỗi, phân tích hành vi gọi service và debug hệ thống phân tán mà không cần ssh vào container.
-   - Cấu hình retention period ngắn (1–3 ngày) phù hợp với môi trường thực hành AWS Learner Lab để tránh phát sinh chi phí. [Phúc kiểm tra và chỉnh lại]
+   - Cấu hình retention period ngắn (1–3 ngày) phù hợp với môi trường thực hành AWS Learner Lab để tránh phát sinh chi phí.
 
 ## Sơ đồ kiến trúc
 
