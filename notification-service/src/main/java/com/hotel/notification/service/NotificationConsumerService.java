@@ -80,9 +80,7 @@ public class NotificationConsumerService {
         try {
             BookingCreatedEvent event = parseEventFromBody(body);
             if (event == null || event.getEventId() == null) {
-                log.warn("Bỏ qua tin nhắn không đúng định dạng: {}", body);
-                deleteMessageFromQueue(message);
-                return;
+                throw new IllegalArgumentException("Message must contain a booking eventId");
             }
 
             // Cơ chế Idempotency: Kiểm tra eventId đã xử lý chưa
@@ -122,7 +120,7 @@ public class NotificationConsumerService {
             return objectMapper.readValue(body, BookingCreatedEvent.class);
         } catch (Exception e) {
             log.error("Không thể giải mã JSON message payload: {}", e.getMessage());
-            return null;
+            throw new IllegalArgumentException("Cannot parse booking event payload", e);
         }
     }
 

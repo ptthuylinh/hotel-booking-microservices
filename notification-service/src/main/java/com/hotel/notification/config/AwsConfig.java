@@ -31,4 +31,11 @@ public class AwsConfig {
                     .build();
         }
     }
+    @Bean
+    public com.fasterxml.jackson.databind.ObjectMapper eventObjectMapper() {
+        return com.fasterxml.jackson.databind.json.JsonMapper.builder()
+                .addModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule())
+                .disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                .build();
+    }
 }
