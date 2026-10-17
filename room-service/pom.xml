@@ -39,6 +39,31 @@
 			<artifactId>spring-boot-starter-webmvc</artifactId>
 		</dependency>
 
+		<!-- Thư viện 1: Giao tiếp với Database PostgreSQL qua JPA/Hibernate -->
+		<!-- Giúp tự tạo bảng, tự sinh câu SQL cơ bản, không cần viết SQL tay -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+
+		<!-- Thư viện 2: Driver kết nối PostgreSQL -->
+		<!-- Đây là "dây cáp" kết nối code Java với cơ sở dữ liệu RDS PostgreSQL -->
+		<!-- scope=runtime: Chỉ cần khi chạy, không cần khi compile -->
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+
+		<!-- Thư viện 3: Lombok - Giảm code lặp lại -->
+		<!-- Tự tạo getter/setter/constructor/toString cho các Entity -->
+		<!-- Bạn chỉ cần ghi @Data là xong, không phải gõ 50 dòng thủ công -->
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<optional>true</optional>
+		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator-test</artifactId>
@@ -53,6 +78,18 @@
 
 	<build>
 		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<annotationProcessorPaths>
+						<path>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+						</path>
+					</annotationProcessorPaths>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
