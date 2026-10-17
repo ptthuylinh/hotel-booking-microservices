@@ -1,65 +1,137 @@
-# Báo Cáo Công Việc Tuần 2 — Cao Hoàng Phúc
+# Báo cáo tuần 2 — Cao Hoàng Phúc
 
-**Đề tài:** Hệ thống đặt phòng khách sạn với kiến trúc microservices trên ECS  
-**Sinh viên:** Cao Hoàng Phúc — MSSV `24110303`  
-**Học phần:** Điện toán đám mây, đợt 1 năm học 2026–2027  
-**Môi trường:** AWS Academy Learner Lab, Region `us-east-1` (Account ID nhóm: `0556-5295-1832`)  
-**Repository:** https://github.com/pttlinh32/hotel-booking-microservices  
-**Phân công Tuần 2:** Hạ tầng Cloud (Amazon RDS với 2 logical databases, DynamoDB, SNS Topic, SQS Queue & DLQ, ALB Path-based Routing, ECS Fargate Cluster & Services). Số giờ thực hiện: 9.0 giờ.
+**Đề tài:** Hệ thống đặt phòng khách sạn với kiến trúc microservices trên ECS\
+**Sinh viên:** Cao Hoàng Phúc — MSSV `24110303`\
+**Phân công:** RDS, DynamoDB, SNS/SQS/DLQ; ALB, target group và ECS Fargate\
+**Số giờ:** 9.0 giờ theo worklog\
+**Trạng thái:** Đã triển khai và kiểm thử\
+**Môi trường:** AWS Academy Learner Lab, `us-east-1`\
+**Repository:** https://github.com/pttlinh32/hotel-booking-microservices\
+**Ngày thực hiện:** 14–17/10/2026
 
-### Bảng phân công công việc tuần 2 (Worklog)
-| Thành viên | Nhiệm vụ chính | Số giờ | Trạng thái |
-|---|---|---|---|
-| Phan Thị Thùy Linh (`24110271`) | Lập trình Backend Spring Boot (JPA, REST, Event SDK), Build & Push ECR Images `v1.0.0`, Kiểm thử thành phần | 9.0 giờ | Đang thực hiện |
-| Cao Hoàng Phúc (`24110303`) | Khởi tạo RDS (2 logical databases), DynamoDB, SNS/SQS/DLQ, ALB Path-based Routing, ECS Cluster & Service | 9.0 giờ | Đang thực hiện |
+Từ tuần 2, nhóm triển khai trên tài khoản AWS của Phan Thị Thùy Linh (`055652951832`) theo sự đồng ý của GVHD.
 
-### Cập nhật tiến độ AWS ngày 14/10/2026
-- **Đã tạo/đã xác minh:** RDS PostgreSQL `hotel-db-instance` có hai logical database rỗng `room_db` và `booking_db`; DynamoDB `hotel-booking-audit-logs` (partition key `bookingId`, sort key `timestamp`); SNS Standard topic `hotel-booking-events`; SQS `booking-notification-queue` và DLQ `booking-notification-dlq`. Queue chính đã bật redrive sang DLQ với `maxReceiveCount = 3`.
-- **Đã kết nối luồng sự kiện:** Subscription SNS→SQS đã ở trạng thái `Confirmed`, bật Raw Message Delivery. Queue policy chỉ cho phép `sns.amazonaws.com` gửi từ topic `hotel-booking-events` trong cùng account.
-- **Đã kiểm tra bảo mật mạng:** RDS SG chỉ nhận PostgreSQL TCP `5432` từ ECS SG. ECS SG nhận TCP `8080` từ ALB SG và từ chính ECS SG để hỗ trợ giao tiếp service-to-service trong VPC; không cần gọi qua public IP.
-- **Máy quản trị tạm:** EC2 `hotel-db-init-temp` đã dừng sau khi khởi tạo RDS. Rule RDS mở tạm cho EC2 đã được gỡ. Instance vẫn còn EBS volume nên có thể tiếp tục tính phí lưu trữ; chưa terminate.
-- **Còn phải làm:** Tạo login role riêng và phân quyền database (`room_user`, `booking_user`), tạo/kiểm thử bảng nghiệp vụ; tạo ECS cluster/services và Cloud Map private DNS để đăng ký `room-service.hotel.local`, rồi kiểm thử lời gọi REST nội bộ. Hiện AWS chưa có ECS cluster, do đó Cloud Map service discovery chưa hoạt động; sơ đồ kiến trúc trong tài liệu ghi rõ đây là mục tiêu thiết kế.
+## Công việc đã làm
 
----
+### Khởi tạo cơ sở dữ liệu và hệ thống truyền thông điệp
 
-## 1. Khởi tạo Cơ sở dữ liệu quan hệ Amazon RDS
-- Tạo Subnet Group trải trên 2 Private Subnets.
-- Khởi tạo 1 Database Instance loại `db.t3.micro` với security group `sg-hotel-rds`.
-- Tạo 2 logical database độc lập: `room_db` (dự kiến dùng login role `room_user`) và `booking_db` (dự kiến dùng login role `booking_user`). Hai database đã tạo, còn login role và phân quyền cần hoàn tất.
+1. **Hoàn thiện Amazon RDS PostgreSQL** `hotel-db-instance`, loại `db.t3.micro`, đặt trong private subnet. Em tạo hai database `room_db`, `booking_db` và hai user `room_user`, `booking_user`. Mỗi user chỉ được kết nối tới database của mình. Mật khẩu được lưu trong Secrets Manager và sử dụng qua cấu hình ECS.
 
----
+   ![Thông số RDS PostgreSQL](images/033-rds-configuration.jpg)
 
-## 2. Khởi tạo Amazon DynamoDB, SNS Topic và SQS Queue
-- Khởi tạo bảng DynamoDB `hotel-booking-audit-logs` với Partition Key `bookingId` và Sort Key `timestamp`.
-- Tạo Amazon SNS Topic `hotel-booking-events`.
-- Tạo Amazon SQS Queue `booking-notification-queue` và Dead Letter Queue `booking-notification-dlq` (Redrive policy `maxReceiveCount = 3`).
-- Thiết lập Subscription kết nối SNS sang SQS.
+   ![Kiểm tra phân quyền riêng và đăng nhập hai database](images/073-rds-user-isolation-va-tables.jpg)
 
----
+   Hai service đã tạo bảng `rooms`, `bookings` và ghi dữ liệu kiểm thử thành công. RDS security group chỉ nhận kết nối cổng `5432` từ ECS security group.
 
-## 3. Cấu hình Application Load Balancer (ALB) Path-based Routing
-- Tạo Application Load Balancer trên 2 Public Subnets, gán `sg-hotel-alb`.
-- Tạo 3 Target Groups (loại IP, port 8080, health check path `/actuator/health`).
-- Cấu hình các luật phân luồng (Path-based Routing Rules):
-  - `/api/rooms*` ➡️ `tg-hotel-room-service`
-  - `/api/bookings*` ➡️ `tg-hotel-booking-service`
-  - `/api/notifications*` ➡️ `tg-hotel-notification-service`
+   ![Dữ liệu trong hai bảng rooms và bookings](images/089-rds-rooms-bookings-du-lieu.jpg)
 
----
+2. **Tạo DynamoDB** `hotel-booking-audit-logs` với partition key `bookingId`, sort key `timestamp`, chế độ On-Demand. Bảng đã nhận hai bản ghi `BOOKING_CREATED` từ `booking-service` sau khi kiểm thử đặt phòng.
 
-## 4. Triển khai Cụm ECS Fargate Cluster & Services
-- Tạo ECS Cluster `hotel-cluster`.
-- Thiết lập 3 Task Definitions tương ứng với 3 ECR image phiên bản `v1.0.0`, sử dụng `LabRole`.
-- Khởi chạy 3 ECS Services trong mạng Private Subnets, gán `sg-hotel-ecs` và liên kết với Target Groups của ALB.
-- Xác nhận các tasks khởi chạy ổn định và đạt trạng thái Healthy trên Target Group.
+   ![Audit log được ghi vào DynamoDB](images/075-dynamodb-audit-bookings.jpg)
 
----
+3. **Tạo SNS, SQS và DLQ** gồm topic `hotel-booking-events`, queue `booking-notification-queue` và DLQ `booking-notification-dlq`. Em kết nối SNS với SQS bằng subscription, bật Raw Message Delivery và cấu hình `maxReceiveCount = 3`. Queue chính giữ message 4 ngày; DLQ giữ 14 ngày.
 
-## 5. Minh chứng nghiệm thu hạ tầng & Quy tắc tiết kiệm ngân sách
-*(Chèn các hình ảnh chụp console RDS, DynamoDB, SNS/SQS, ALB, ECS Task status).*
-- Đảm bảo thực hiện scale Task về 0 và Stop RDS sau mỗi buổi làm việc để bảo toàn ngân sách Lab.
+   ![SNS topic và subscription đã xác nhận](images/041-sns-topic-subscription.jpg)
 
----
+   ![Cấu hình queue chính và redrive sang DLQ](images/047-sqs-retention-va-redrive.jpg)
 
-## 6. Ghi nhận sử dụng AI
-*(Ghi chú chi tiết các công cụ AI hỗ trợ tra cứu cú pháp và cấu hình).*
+### Cấu hình ALB và target group
+
+Em tạo ALB `hotel-booking-alb`, loại **Internet-facing**, trên hai public subnet tại `us-east-1a` và `us-east-1b`. ALB dùng security group `hotel-booking-alb-sg` và listener **HTTP:80**. Ba target group dùng loại **IP**, cổng **8080**, health check path `/actuator/health`.
+
+| Priority | Đường dẫn | Target group |
+|---|---|---|
+| 10 | `/api/rooms*` | `hotel-room-tg` |
+| 20 | `/api/bookings*` | `hotel-booking-tg` |
+| 30 | `/api/notifications*` | `hotel-notification-tg` |
+| Default | Khi không khớp rule nào | Trả về `404 Not Found` |
+
+Em đã đồng bộ các đường dẫn với backend và gắn tag `Project=hotel-booking-microservices`, `Owner=24110303` cho tài nguyên.
+
+![Listener với ba rule API và default response 404](images/085-alb-rules-final-co-tag.jpg)
+
+### Build image và triển khai ECS Fargate
+
+Em lấy mã nguồn từ nhánh `linh-week-2-backend`, build và push ba image phiên bản `v1.0.0` lên ECR. Trong quá trình chạy thử, em bổ sung cấu hình `ObjectMapper` cho booking/notification và sửa xử lý message lỗi để SQS có thể retry, chuyển sang DLQ. Bản sửa đã push lên nhánh `linh-week-2-backend`, commit `e72130b`; tệp `backend-week2-fixes.patch` được lưu kèm bộ minh chứng.
+
+| Service | ECR image | Task definition |
+|---|---|---|
+| `room-service` | `hotel-room-service:v1.0.0` | `hotel-room-service:1` |
+| `booking-service` | `hotel-booking-service:v1.0.0` | `hotel-booking-service:1` |
+| `notification-service` | `hotel-notification-service:v1.0.0` | `hotel-notification-service:1` |
+
+![Image booking-service phiên bản v1.0.0 trên ECR](images/090-ecr-booking-v100-final.jpg)
+
+Em tạo ba task definition sử dụng **Fargate**, mạng `awsvpc`, Linux/X86_64, **0.25 vCPU**, **512 MiB RAM**, cổng container **8080**. Task role và task execution role đều dùng `LabRole`. Log của các container được ghi vào CloudWatch, giữ trong 3 ngày.
+
+![Ba task definition đã tạo](images/048-ecs-ba-task-definitions.jpg)
+
+![Thông số task definition của room-service](images/050-room-task-definition-day-du.jpg)
+
+Em triển khai ba ECS service trong cluster `hotel-cluster`, mỗi service chạy một task trong private subnet và liên kết với target group tương ứng. NAT Gateway được dùng trong đợt kiểm thử để các task tải image và gọi dịch vụ AWS. Booking gọi room qua private DNS `room-service.hotel.local` trong Route 53.
+
+![Ba ECS service chạy trên Fargate](images/055-ecs-ba-service-running.jpg)
+
+Cả ba target group đã đạt trạng thái **Healthy**.
+
+![Target của room-service Healthy](images/076-room-healthy-final.jpg)
+
+![Target của booking-service Healthy](images/077-booking-healthy-final.jpg)
+
+![Target của notification-service Healthy](images/069-notification-target-healthy.jpg)
+
+### Kiểm thử các thành phần
+
+Em kiểm thử bằng dữ liệu giả có mã khách hàng `WEEK2-TEST` và `WEEK2-E2E`.
+
+| Nội dung kiểm thử | Kết quả |
+|---|---|
+| Tra cứu phòng qua ALB | `200 OK` |
+| Tạo booking | `201 Created`, trạng thái `CONFIRMED` |
+| Trạng thái phòng sau khi đặt | Chuyển sang `RESERVED` |
+| Đặt lại phòng đã được giữ | `409 Conflict` |
+| Ghi dữ liệu RDS | Có dữ liệu trong `rooms` và `bookings` |
+| Ghi audit log DynamoDB | Có hai bản ghi `BOOKING_CREATED` |
+| SNS → SQS → notification | Nhận sự kiện, ghi log email mô phỏng và ACK message |
+| Gửi lại cùng `eventId` | Bỏ qua thông báo trùng |
+| Message lỗi | Sau ba lần xử lý lỗi, chuyển sang DLQ |
+
+![Kiểm thử tạo booking 201 và đặt trùng 409](images/088-api-post201-conflict409.jpg)
+
+![CloudWatch log gửi email mô phỏng và ACK message](images/071-cloudwatch-email-ack-idempotency.jpg)
+
+![Log bỏ qua sự kiện trùng](images/083-idempotency-final.jpg)
+
+![Message lỗi đã được chuyển vào DLQ](images/082-dlq-message-body.jpg)
+
+Khi kiểm thử DLQ, em tạm giảm visibility timeout xuống 10 giây để rút ngắn thời gian chờ; sau đó khôi phục về 60 giây.
+
+### Kết thúc buổi thực hành
+
+Sau khi chụp minh chứng, em đưa ba ECS service về **desired count = 0**, dừng RDS và EC2 quản trị tạm. Rule truy cập tạm của EC2 được gỡ bằng cách khôi phục security group ban đầu. NAT Gateway và Elastic IP tạo cho đợt kiểm thử được gỡ để tiết kiệm ngân sách.
+
+![ECS đã về 0 running và 0 pending](images/091-ecs-scale-zero.jpg)
+
+![RDS đã dừng sau kiểm thử](images/092-rds-stopped.jpg)
+
+**Kết quả:** Đã triển khai ba microservice lên ECS Fargate, kiểm tra target Healthy và thực hiện thành công luồng đặt phòng, lưu dữ liệu, ghi audit log và xử lý thông báo. Tài nguyên chạy theo giờ đã được dừng hoặc thu hồi sau buổi thực hành.
+
+## Nghiên cứu dịch vụ
+
+1. **RDS và Secrets Manager:** Tách database, user và quyền truy cập theo từng service; đưa thông tin đăng nhập vào ECS qua Secrets Manager.
+2. **ALB và ECS Fargate:** Phân luồng request theo đường dẫn, chạy container độc lập và kiểm tra sức khỏe qua `/actuator/health`.
+3. **SNS, SQS và DLQ:** Truyền sự kiện giữa các service, xử lý thông báo bất đồng bộ và giữ lại message lỗi để kiểm tra.
+4. **CloudWatch Logs:** Theo dõi khởi động ứng dụng, kết nối database, xử lý sự kiện và kiểm thử chống trùng.
+
+## Sơ đồ kiến trúc
+
+![Sơ đồ kiến trúc hệ thống hotel booking microservices](images/so-do-kien-truc-week-2.png)
+
+Sơ đồ thể hiện cấu hình đã triển khai và kiểm thử tuần 2: ALB HTTP cổng 80, private DNS Route 53, NAT Gateway tạm và notification mô phỏng email bằng log.
+
+**Sử dụng AI:** Em dùng AI hỗ trợ cấu hình AWS, build và kiểm tra backend, chọn ảnh minh chứng và biên tập báo cáo.
+
+## Công việc chưa hoàn thành so với tasks.md tuần 2
+
+- Chưa bàn giao trực tiếp thông tin kết nối cho Linh. Thông tin database đã được chuẩn bị trong Secrets Manager; image và các cấu hình triển khai đã có trên tài khoản nhóm.
+- Cloud Map chưa triển khai do giới hạn quyền Learner Lab. Phần gọi REST nội bộ đã kiểm thử bằng private DNS Route 53; việc tự động cập nhật DNS khi task đổi IP chưa hoàn thiện. Tệp `resume-lab.py` kèm minh chứng cập nhật IP khi khởi động lại môi trường.

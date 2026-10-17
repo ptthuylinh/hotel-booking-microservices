@@ -14,8 +14,8 @@
 
 | STT | Thành viên | MSSV | Vai trò chính trong Tuần 2 | Số giờ dự kiến | Trạng thái |
 |:---:|---|:---:|---|:---:|:---:|
-| 1 | **Cao Hoàng Phúc** | `24110303` | **Cloud Infrastructure & DevOps:** Khởi tạo RDS (2 logical databases), DynamoDB, SNS/SQS/DLQ, ALB Path-based Routing, ECS Cluster & Service. | 9.0 giờ | Đang thực hiện |
-| 2 | **Phan Thị Thùy Linh** | `24110271` | **Backend & Containerization:** Viết code JPA, REST internal call, SNS Producer, SQS Listener, Docker Build & Push ECR Images (`v1.0.0`). | 9.0 giờ | Đang thực hiện |
+| 1 | **Cao Hoàng Phúc** | `24110303` | **Cloud Infrastructure & DevOps:** Khởi tạo RDS (2 logical databases), DynamoDB, SNS/SQS/DLQ, ALB Path-based Routing, ECS Cluster & Service. | 9.0 giờ | Hoàn thành |
+| 2 | **Phan Thị Thùy Linh** | `24110271` | **Backend & Containerization:** Viết code JPA, REST internal call, SNS Producer, SQS Listener, Docker Build & Push ECR Images (`v1.0.0`). | 9.0 giờ | Hoàn thành |
 
 ---
 
@@ -148,21 +148,21 @@
 ## 📋 DANH MỤC MINH CHỨNG NGHIỆM THU TUẦN 2 (CHECKLIST ẢNH)
 
 1. **Minh chứng Hạ tầng (Phúc):**
-   - [ ] Ảnh 1: Amazon RDS Instance đang chạy (loại `db.t3.micro`, Private Subnet, tag đầy đủ).
-   - [ ] Ảnh 2: Hai logical database `room_db` và `booking_db` trên cùng RDS PostgreSQL instance.
-   - [ ] Ảnh 3: Bảng Amazon DynamoDB `hotel-booking-audit-logs` (Partition Key `bookingId`, Sort Key `timestamp`).
-   - [ ] Ảnh 4: Amazon SNS Topic `hotel-booking-events` và Subscription liên kết tới SQS.
-   - [ ] Ảnh 5: Amazon SQS Main Queue (`booking-notification-queue`) và Dead Letter Queue (`booking-notification-dlq`).
-   - [ ] Ảnh 6: Application Load Balancer (ALB) và các Path-based Routing Rules (`/api/rooms*`, `/api/bookings*`, `/api/notifications*`).
-   - [ ] Ảnh 7: Danh sách 3 Target Groups của ALB đều báo trạng thái **Healthy**.
-   - [ ] Ảnh 8: ECS Cluster `hotel-cluster` với 3 Task Definitions và 3 Services chạy trên Fargate.
+   - [x] Ảnh 1: Amazon RDS Instance đang chạy (loại `db.t3.micro`, Private Subnet, tag đầy đủ).
+   - [x] Ảnh 2: Hai logical database `room_db` và `booking_db` trên cùng RDS PostgreSQL instance.
+   - [x] Ảnh 3: Bảng Amazon DynamoDB `hotel-booking-audit-logs` (Partition Key `bookingId`, Sort Key `timestamp`).
+   - [x] Ảnh 4: Amazon SNS Topic `hotel-booking-events` và Subscription liên kết tới SQS.
+   - [x] Ảnh 5: Amazon SQS Main Queue (`booking-notification-queue`) và Dead Letter Queue (`booking-notification-dlq`).
+   - [x] Ảnh 6: Application Load Balancer (ALB) và các Path-based Routing Rules (`/api/rooms*`, `/api/bookings*`, `/api/notifications*`).
+   - [x] Ảnh 7: Danh sách 3 Target Groups của ALB đều báo trạng thái **Healthy**.
+   - [x] Ảnh 8: ECS Cluster `hotel-cluster` với 3 Task Definitions và 3 Services chạy trên Fargate.
 
 2. **Minh chứng Ứng dụng & Kiểm thử (Linh):**
-   - [ ] Ảnh 9: Terminal đóng gói Maven và Docker build image `v1.0.0` thành công.
-   - [ ] Ảnh 10: Terminal thực hiện lệnh `docker push` đẩy image lên Amazon ECR.
-   - [ ] Ảnh 11: Giao diện Amazon ECR Repositories hiển thị image tag `v1.0.0`.
-   - [ ] Ảnh 12: Kiểm thử gọi API `GET /api/rooms` qua DNS của ALB trên Postman/Browser (trả về JSON danh sách phòng).
-   - [ ] Ảnh 13: Kiểm thử gọi API `POST /api/bookings` tạo đơn thành công (mã `201 Created`).
-   - [ ] Ảnh 14: Dữ liệu được ghi thành công vào RDS bảng `rooms` và `bookings`.
-   - [ ] Ảnh 15: Dữ liệu Audit Trail được ghi vào DynamoDB.
-   - [ ] Ảnh 16: Log của `notification-service` tiêu thụ message từ SQS và in ra log xác nhận gửi email.
+   - [x] Ảnh 9: Terminal đóng gói Maven và Docker build image `v1.0.0` thành công.
+   - [x] Ảnh 10: Terminal thực hiện lệnh `docker push` đẩy image lên Amazon ECR.
+   - [x] Ảnh 11: Giao diện Amazon ECR Repositories hiển thị image tag `v1.0.0`.
+   - [x] Ảnh 12: Kiểm thử gọi API `GET /api/rooms` qua DNS của ALB trên Postman/Browser (trả về JSON danh sách phòng).
+   - [x] Ảnh 13: Kiểm thử gọi API `POST /api/bookings` tạo đơn thành công (mã `201 Created`).
+   - [x] Ảnh 14: Dữ liệu được ghi thành công vào RDS bảng `rooms` và `bookings`.
+   - [x] Ảnh 15: Dữ liệu Audit Trail được ghi vào DynamoDB.
+   - [x] Ảnh 16: Log của `notification-service` tiêu thụ message từ SQS và in ra log xác nhận gửi email.
