@@ -225,3 +225,52 @@ aws ecs update-service --cluster hotel-cluster --service notification-service --
 
 Write-Host "=== MÔI TRƯỜNG ĐÃ SẴN SÀNG ĐỂ THỰC HÀNH & KIỂM THỬ! ===" -ForegroundColor Green
 ```
+
+---
+
+## 🚀 Hướng Dẫn Chạy Tải Thật & Quan Sát ECS Auto Scaling (Yêu Cầu GVHD)
+
+### 1. Cấu hình ECS Auto Scaling (Target Tracking) qua AWS CLI
+```powershell
+# 1. Đăng ký ECS Scalable Target cho room-service (Min: 1, Max: 3)
+aws application-autoscaling register-scalable-target `
+    --service-namespace ecs `
+    --scalable-dimension ecs:service:DesiredCount `
+    --resource-id service/hotel-cluster/room-service `
+    --min-capacity 1 `
+    --max-capacity 3 `
+    --region us-east-1
+
+# 2. Tạo Target Tracking Scaling Policy dựa trên CPU Utilization (ngưỡng 50%)
+aws application-autoscaling put-scaling-policy `
+    --policy-name "room-service-cpu-scaling" `
+    --service-namespace ecs `
+    --resource-id service/hotel-cluster/room-service `
+    --scalable-dimension ecs:service:DesiredCount `
+    --policy-type TargetTrackingScaling `
+    --target-tracking-scaling-policy-configuration '{
+        "TargetValue": 50.0,
+        "PredefinedMetricSpecification": {
+            "PredefinedMetricType": "ECSServiceAverageCPUUtilization"
+        },
+        "ScaleOutCooldown": 60,
+        "ScaleInCooldown": 120
+    }' `
+    --region us-east-1
+```
+
+### 2. Thực Thi Script Bắn Tải Thật
+Chạy script PowerShell đã tạo trong `scripts/load-test.ps1`:
+```powershell
+# Bắn 200 requests đồng thời vào ALB
+.\scripts\load-test.ps1 -ALB_DNS "http://<alb-dns-cua-nhom>" -TotalRequests 200 -Concurrency 10
+```
+- Khi chạy script: CPU trên CloudWatch sẽ tăng vọt $\rightarrow$ ECS kích hoạt Alarm $\rightarrow$ Auto Scaling tự động nâng DesiredCount từ 1 lên 2 tasks.
+- Chụp ảnh màn hình: Terminal chạy load test xong + ECS Tasks Console hiển thị 2 tasks đang `RUNNING`.
+
+---
+
+## ⚠️ Lưu Ý Đặc Biệt Về Quy Cách Nộp Báo Cáo Của GVHD
+- **Quy định từ Thầy Huỳnh Xuân Phụng:** Thầy **CHỈ CHẤM NỘI DUNG TRÌNH BÀY TRỰC TIẾP TRÊN HỆ THỐNG ONLINE (LMS)**; file đính kèm `.docx` **KHÔNG ĐƯỢC TÍNH VÀO ĐÁNH GIÁ**.
+- **Cách thực hiện:** Khi nộp báo cáo Tuần 3, hãy sao chép toàn bộ nội dung Markdown (hoặc render sang giao diện phong phú) và dán trực tiếp vào khung nhập báo cáo online trên trang web của trường để được ghi nhận điểm tối đa!
+
