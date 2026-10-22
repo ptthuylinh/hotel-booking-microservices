@@ -114,14 +114,15 @@
 
 ## 💰 NHẬT KÝ THEO DÕI CHI PHÍ & DỌN TÀI NGUYÊN (CHUẨN BỊ CHO TUẦN CUỐI)
 
-Bảng ghi nhận thực tế sau mỗi phiên thực hành trên AWS Academy Learner Lab (Ngân sách ban đầu: **$100.00 USD**):
+Bảng ghi nhận thực tế sau mỗi phiên thực hành trên AWS Academy Learner Lab (Hạn mức cấp: **$50.00 USD**):
 
-| Buổi làm việc | Ngày thực hiện | Số dư Credits còn lại | Chi phí ước tính tích lũy | Trạng thái ECS Tasks | Trạng thái RDS Instance | Người thực hiện dọn dẹp | Minh chứng kiểm tra |
+| Buổi làm việc | Ngày thực hiện | Số dư Credits còn lại | Chi phí đã dùng tích lũy | Trạng thái ECS Tasks | Trạng thái RDS Instance | Người thực hiện dọn dẹp | Ghi chú tiến độ |
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| **Buổi 1** | 22/10/2026 | $88.50 | ~$11.50 | Desired = 0 (0 running) | `Stopped` | Phúc & Linh | Ảnh chụp Console & CLI |
-| **Buổi 2** | 23/10/2026 | $86.20 | ~$13.80 | Desired = 0 (0 running) | `Stopped` | Phúc | Ảnh chụp Console & CLI |
-| **Buổi 3** | 24/10/2026 | $83.80 | ~$16.20 | Desired = 0 (0 running) | `Stopped` | Linh | Ảnh chụp Console & CLI |
-| **Nghiệm thu** | 25/10/2026 | TBD | TBD | Desired = 0 (0 running) | `Stopped` | Cả nhóm | Báo cáo chi phí tuần 3 |
+| **Chốt Tuần 2** | 17/10/2026 | **$43.10** | **$6.90** | Desired = 0 | `Stopped` | Phúc & Linh | Đã nghiệm thu Tuần 2 (Đạt) |
+| **Buổi 1 (Tuần 3)**| 22/10/2026 | $43.10 | $6.90 | Desired = 0 | `Stopped` | Linh | Hoàn thiện Code Backend & Build Docker v1.1.0 |
+| **Buổi 2 (Tuần 3)**| 23/10/2026 | TBD | TBD | Desired = 1 (khi test) | `Running` $\rightarrow$ `Stopped` | Phúc | Cấu hình SSM, CloudWatch & Auto Scaling |
+| **Buổi 3 (Tuần 3)**| 24/10/2026 | TBD | TBD | Desired = 1 co giãn | `Running` $\rightarrow$ `Stopped` | Cả nhóm | Chạy tải thật & kiểm thử E2E |
+| **Nghiệm thu T3** | 25/10/2026 | TBD | TBD | Desired = 0 | `Stopped` | Cả nhóm | Dọn dẹp tài nguyên & tổng kết chi phí |
 
 ---
 
