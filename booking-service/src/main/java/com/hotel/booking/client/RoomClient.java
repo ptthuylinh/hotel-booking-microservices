@@ -32,6 +32,13 @@ public class RoomClient {
         this.restClient = RestClient.builder()
                 .baseUrl(roomServiceUrl)
                 .requestFactory(requestFactory)
+                .requestInterceptor((request, body, execution) -> {
+                    String corrId = org.slf4j.MDC.get("correlationId");
+                    if (corrId != null && !corrId.isBlank()) {
+                        request.getHeaders().set("X-Correlation-Id", corrId);
+                    }
+                    return execution.execute(request, body);
+                })
                 .build();
     }
 

@@ -1,6 +1,7 @@
 package com.hotel.booking.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -14,12 +15,21 @@ import java.time.LocalDate;
 public class CreateBookingRequest {
 
     private String customerId;
+
+    @NotBlank(message = "customerName không được để trống")
     private String customerName;
+
+    @NotBlank(message = "customerEmail không được để trống")
+    @Email(message = "customerEmail không đúng định dạng email")
     private String customerEmail;
+
     private String customerPhone;
+
+    @NotNull(message = "roomId không được để trống")
     private Long roomId;
 
     @JsonFormat(pattern = "yyyy-MM-dd")
+    @FutureOrPresent(message = "checkInDate không được ở trong quá khứ")
     private LocalDate checkInDate;
 
     @JsonFormat(pattern = "yyyy-MM-dd")

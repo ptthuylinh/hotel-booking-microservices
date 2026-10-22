@@ -59,6 +59,7 @@ public class NotificationConsumerService {
                     .queueUrl(queueUrl)
                     .maxNumberOfMessages(10)
                     .waitTimeSeconds(2) // Long polling ngắn
+                    .messageAttributeNames("All")
                     .build();
 
             List<Message> messages = sqsClient.receiveMessage(receiveRequest).messages();
@@ -76,6 +77,24 @@ public class NotificationConsumerService {
     }
 
     private void processSingleMessage(Message message) {
+        String corrId = null;
+        if (message.messageAttributes() != null && message.messageAttributes().containsKey("correlationId")) {
+            corrId = message.messageAttributes().get("correlationId").stringValue();
+        }
+        if (corrId == null || corrId.isBlank()) {
+            try {
+                JsonNode root = objectMapper.readTree(message.body());
+                if (root.has("MessageAttributes") && root.get("MessageAttributes").has("correlationId")) {
+                    corrId = root.get("MessageAttributes").get("correlationId").get("Value").asText();
+                }
+            } catch (Exception ignored) {
+            }
+        }
+        if (corrId == null || corrId.isBlank()) {
+            corrId = "sqs-" + UUID.randomUUID().toString().substring(0, 8);
+        }
+
+        org.slf4j.MDC.put("correlationId", corrId);
         String body = message.body();
         try {
             BookingCreatedEvent event = parseEventFromBody(body);
@@ -103,6 +122,8 @@ public class NotificationConsumerService {
         } catch (Exception e) {
             log.error("Lỗi khi xử lý message SQS (MessageId: {}): {}", message.messageId(), e.getMessage());
             // Không xóa message để SQS chuyển sang DLQ sau khi vượt quá maxReceiveCount = 3
+        } finally {
+            org.slf4j.MDC.remove("correlationId");
         }
     }
 
