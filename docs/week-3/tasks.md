@@ -168,10 +168,10 @@ Bảng ghi nhận thực tế sau mỗi phiên thực hành trên AWS Academy Le
 - [ ] **Ảnh 9 (Yêu cầu GVHD):** Bảng ghi nhận chi phí và ảnh chụp AWS Billing / Credits còn lại kèm trạng thái RDS `Stopped` và ECS Tasks = 0.
 
 ### 2. Minh chứng Ứng dụng, Tích hợp & Kiểm thử Tải (Linh):
-- [ ] **Ảnh 10:** Mã nguồn bộ lọc `CorrelationIdFilter` và cấu hình `logback-spring.xml` xuất `correlationId` trong log console.
-- [ ] **Ảnh 11:** Mã nguồn xử lý bồi hoàn (Compensating Transaction) giải phóng phòng khi tạo booking thất bại.
-- [ ] **Ảnh 12:** Mã nguồn `@RestControllerAdvice` xử lý validation và trả về lỗi chuẩn hóa RFC 7807 (Problem Details).
-- [ ] **Ảnh 13:** Giao diện Amazon ECR hiển thị 3 repository có image tag mới **`v1.1.0`**.
+- [x] **Ảnh 10:** Mã nguồn bộ lọc `CorrelationIdFilter` và cấu hình log xuất `correlationId`: [`10-correlation-id-filter-code.png`](linh/images/10-correlation-id-filter-code.png)
+- [x] **Ảnh 11:** Mã nguồn xử lý bồi hoàn (Compensating Transaction) giải phóng phòng khi lỗi: [`11-compensating-transaction-code.png`](linh/images/11-compensating-transaction-code.png)
+- [x] **Ảnh 12:** Mã nguồn `@RestControllerAdvice` xử lý validation và lỗi chuẩn RFC 7807: [`12-rfc7807-validation-exception-code.png`](linh/images/12-rfc7807-validation-exception-code.png)
+- [x] **Ảnh 13:** Terminal và Amazon ECR hiển thị 3 repository có image tag mới **`v1.1.0`**: [`13-ecr-repositories-v110.png`](linh/images/13-ecr-repositories-v110.png)
 - [ ] **Ảnh 14:** Kiểm thử Happy Path E2E thành công (Response trả về `201 Created` kèm header `X-Correlation-Id` trên Terminal/curl/Thunder Client).
 - [ ] **Ảnh 15:** Kiểm thử kịch bản Bồi hoàn (Compensating Rollback): Khi cố ý làm hỏng bước tiếp theo, phòng tự động được mở lại trạng thái `AVAILABLE`.
 - [ ] **Ảnh 16:** Kiểm thử kịch bản đưa tin nhắn lỗi vào SQS $\rightarrow$ sau 3 lần retry, tin nhắn vào DLQ và in log cảnh báo.
