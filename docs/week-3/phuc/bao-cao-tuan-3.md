@@ -1,95 +1,109 @@
-# Báo cáo tiến độ tuần 3 – Cao Hoàng Phúc (24110303)
+# Báo cáo tuần 3 — Cao Hoàng Phúc
 
-Ngày thực hiện: 24/10/2026. AWS account: 055652951832; Region: us-east-1.
+**Đề tài:** Hệ thống đặt phòng khách sạn với kiến trúc microservices trên ECS\
+**Sinh viên:** Cao Hoàng Phúc — MSSV `24110303`\
+**Phân công:** SSM Parameter Store, CloudWatch, ECS Auto Scaling và quản lý chi phí\
+**Trạng thái:** Đã hoàn thành cấu hình mục 3 — CloudWatch Metrics & Alarms; các mục còn lại đang thực hiện\
+**Môi trường:** AWS Academy Learner Lab, tài khoản nhóm `055652951832`, Region `us-east-1`\
+**Repository:** https://github.com/pttlinh32/hotel-booking-microservices\
+**Ngày thực hiện:** 24/10/2026
 
-## Phạm vi đã hoàn thành: mục 3 – CloudWatch Metrics & Alarms
+## Công việc đã làm
 
-Cấu hình bằng giao diện AWS Console; không dùng AWS CLI/CloudShell. Đã tạo SNS Standard topic `hotel-system-alerts` với ARN `arn:aws:sns:us-east-1:055652951832:hotel-system-alerts`. Topic chưa có subscription; chưa xác nhận việc gửi email tới người nhận.
+### Thiết lập kênh nhận sự kiện cảnh báo bằng Amazon SNS
 
-| Alarm | Metric và phạm vi | Điều kiện | SNS action |
-|---|---|---|---|
-| ECS-High-CPU-Utilization | AWS/ECS, CPUUtilization; hotel-cluster / booking-service; Average | ≥80%, 2/2 kỳ × 60 giây | hotel-system-alerts |
-| ECS-High-Memory-Utilization | AWS/ECS, MemoryUtilization; hotel-cluster / booking-service; Average | ≥85%, 2/2 kỳ × 60 giây | hotel-system-alerts |
-| ALB-High-Target-5XX-Errors | AWS/ApplicationELB, HTTPCode_Target_5XX_Count; app/hotel-booking-alb/4bb29c65802c7069; Sum | ≥5 lỗi, 1/1 kỳ × 60 giây | hotel-system-alerts |
-| SQS-DLQ-Has-Poison-Messages | AWS/SQS, ApproximateNumberOfMessagesVisible; booking-notification-dlq; Maximum | ≥1 tin nhắn, 1/1 kỳ × 60 giây | hotel-system-alerts |
+Em tạo SNS topic **`hotel-system-alerts`**, loại **Standard**, để tập trung sự kiện cảnh báo của hệ thống. Khi một CloudWatch alarm chuyển sang trạng thái `ALARM`, CloudWatch được cấu hình phát thông báo tới topic này.
 
-Cả bốn alarm bật actions; missing data được giữ là missing. CPU và Memory hiện giám sát booking-service, chưa bao phủ room-service/notification-service. Metric lỗi target 5XX được cấu hình theo đúng tên metric; không có sẵn trong danh sách metric gần đây nên chọn dimension của ALB đang tồn tại rồi sửa tên metric trong form Console.
+Topic có ARN `arn:aws:sns:us-east-1:055652951832:hotel-system-alerts`. Em gắn cùng ARN này vào hành động **In alarm** của cả bốn alarm, giúp quản lý nơi nhận cảnh báo tập trung thay vì cấu hình riêng cho từng tài nguyên.
 
-## Kết quả quan sát trên AWS
+![Cấu hình CPU alarm gửi sự kiện tới SNS hotel-system-alerts](images/068-cpu-alert-topic.jpg)
 
-Console xác nhận tạo thành công cả bốn alarm. DLQ đã tự chuyển sang **ALARM** khi giám sát dữ liệu có sẵn của queue. Không bơm thêm poison message và không xóa tin nhắn. Đây là quan sát trạng thái alarm, chưa phải kết quả kiểm thử retry/redrive end-to-end. Ba alarm CPU/Memory/ALB đang **Insufficient data** tại thời điểm chụp; chưa chạy tải hoặc chứng minh các alarm này chuyển trạng thái.
+Topic hiện chưa có subscription. Vì vậy, phần đã hoàn thành là tạo kênh SNS và cấu hình hành động từ CloudWatch; chưa xác nhận việc gửi email hoặc chuyển thông báo tới người nhận cuối.
 
-![Bốn alarm và trạng thái DLQ ALARM](images/106-four-alarms-dlq-alarm.jpg)
+### Cấu hình cảnh báo CPU và bộ nhớ của ECS
 
-![Chi tiết DLQ ALARM](images/107-dlq-alarm-detail.jpg)
+Em cấu hình hai alarm theo dõi tài nguyên của **`booking-service`** trong cluster **`hotel-cluster`**. Cả hai sử dụng namespace `AWS/ECS`, với hai dimension `ClusterName=hotel-cluster` và `ServiceName=booking-service`. Việc chỉ định đủ dimension giúp alarm theo dõi đúng service thay vì gộp nhầm dữ liệu của các service khác.
 
-## Kiểm tra ban đầu và các việc còn lại
+| Alarm | Metric | Thống kê | Chu kỳ | Điều kiện kích hoạt |
+|---|---|---|---|---|
+| `ECS-High-CPU-Utilization` | `CPUUtilization` | Average | 60 giây | CPU ≥80% trong 2/2 kỳ đánh giá liên tiếp |
+| `ECS-High-Memory-Utilization` | `MemoryUtilization` | Average | 60 giây | Memory ≥85% trong 2/2 kỳ đánh giá liên tiếp |
 
-- Ba log group thực tế là `/ecs/hotel/room-service`, `/ecs/hotel/booking-service`, `/ecs/hotel/notification-service`; cả ba đã có retention 3 ngày trước phiên này. Chưa đổi tên log group hoặc cấu hình ECS.
-- Parameter Store hiển thị trang bắt đầu sử dụng; chưa tạo sáu SecureString và chưa chuyển ECS environment sang secrets.
-- Chưa cấu hình dashboard, Logs Insights query, Auto Scaling hoặc triển khai v1.1.0 trong phiên này.
-- Chưa chạy script bật/tắt, load test, hoặc kiểm tra trạng thái dừng của RDS/ECS. Không ghi nhận hoàn thành các mục đó.
-- Learner Lab đầu phiên hiển thị Used $8.80/$50, tương đương còn $41.20; đây là số hiển thị đầu phiên, không phải số chốt sau phiên.
+Với cấu hình trên, alarm CPU chỉ kích hoạt khi giá trị trung bình vượt hoặc bằng 80% trong hai phút liên tiếp. Điều này hạn chế cảnh báo do một lần tăng tải ngắn. Alarm bộ nhớ được cấu hình tương tự với ngưỡng 85%.
 
-## Ảnh từng bước
+![Thông số CPU alarm: đúng service, ngưỡng 80%, chu kỳ một phút và hai kỳ đánh giá](images/073-cpu-alarm-detail.jpg)
 
-Ảnh minh chứng bên dưới được chụp sau khi cursor Codex tự ẩn, giữ nguyên nội dung Console. Các ảnh gốc đầu phiên còn cursor được lưu cục bộ riêng, không dùng làm ảnh báo cáo. Chưa chỉnh sửa hoặc tái tạo nội dung ảnh.
+Em tạo alarm bộ nhớ từ cấu hình CPU, đổi metric thành `MemoryUtilization`, đổi ngưỡng thành `85` và đặt tên alarm riêng. Cách này giữ thống nhất chu kỳ đánh giá và SNS action giữa hai alarm.
 
-- [050-cpu-metric-picker.jpg](images/050-cpu-metric-picker.jpg)
-- [051-ecs-metric-group-no-cursor.jpg](images/051-ecs-metric-group-no-cursor.jpg)
-- [052-ecs-service-metrics-no-cursor.jpg](images/052-ecs-service-metrics-no-cursor.jpg)
-- [053-booking-cpu-selected-no-cursor.jpg](images/053-booking-cpu-selected-no-cursor.jpg)
-- [054-cpu-picker.jpg](images/054-cpu-picker.jpg)
-- [055-ecs-namespace.jpg](images/055-ecs-namespace.jpg)
-- [056-ecs-service-list.jpg](images/056-ecs-service-list.jpg)
-- [057-booking-cpu-checked.jpg](images/057-booking-cpu-checked.jpg)
-- [058-booking-cpu-conditions.jpg](images/058-booking-cpu-conditions.jpg)
-- [059-cpu-period-menu.jpg](images/059-cpu-period-menu.jpg)
-- [060-cpu-period-one-minute.jpg](images/060-cpu-period-one-minute.jpg)
-- [061-cpu-greater-equal.jpg](images/061-cpu-greater-equal.jpg)
-- [062-cpu-threshold-80.jpg](images/062-cpu-threshold-80.jpg)
-- [063-cpu-additional.jpg](images/063-cpu-additional.jpg)
-- [064-cpu-evaluation-two.jpg](images/064-cpu-evaluation-two.jpg)
-- [065-cpu-datapoints-two.jpg](images/065-cpu-datapoints-two.jpg)
-- [066-cpu-actions.jpg](images/066-cpu-actions.jpg)
-- [067-cpu-topic-arn-option.jpg](images/067-cpu-topic-arn-option.jpg)
-- [068-cpu-alert-topic.jpg](images/068-cpu-alert-topic.jpg)
-- [069-cpu-name-form.jpg](images/069-cpu-name-form.jpg)
-- [070-cpu-alarm-name.jpg](images/070-cpu-alarm-name.jpg)
-- [071-cpu-alarm-review.jpg](images/071-cpu-alarm-review.jpg)
-- [072-cpu-alarm-created.jpg](images/072-cpu-alarm-created.jpg)
-- [073-cpu-alarm-detail.jpg](images/073-cpu-alarm-detail.jpg)
-- [074-cpu-alarm-actions-menu.jpg](images/074-cpu-alarm-actions-menu.jpg)
-- [075-copy-alarm-for-memory.jpg](images/075-copy-alarm-for-memory.jpg)
-- [076-memory-metric-name.jpg](images/076-memory-metric-name.jpg)
-- [077-memory-threshold-85.jpg](images/077-memory-threshold-85.jpg)
-- [078-memory-actions.jpg](images/078-memory-actions.jpg)
-- [079-memory-name-form.jpg](images/079-memory-name-form.jpg)
-- [080-memory-alarm-name.jpg](images/080-memory-alarm-name.jpg)
-- [081-memory-review.jpg](images/081-memory-review.jpg)
-- [082-memory-alarm-created.jpg](images/082-memory-alarm-created.jpg)
-- [083-new-alb-alarm.jpg](images/083-new-alb-alarm.jpg)
-- [084-alb-metric-picker.jpg](images/084-alb-metric-picker.jpg)
-- [085-applicationelb-namespace.jpg](images/085-applicationelb-namespace.jpg)
-- [086-alb-metrics-list.jpg](images/086-alb-metrics-list.jpg)
-- [087-home-for-alb-check.jpg](images/087-home-for-alb-check.jpg)
-- [088-ec2-for-alb-check.jpg](images/088-ec2-for-alb-check.jpg)
-- [089-current-load-balancers.jpg](images/089-current-load-balancers.jpg)
-- [090-current-alb-metric-selected.jpg](images/090-current-alb-metric-selected.jpg)
-- [091-alb-metric-conditions.jpg](images/091-alb-metric-conditions.jpg)
-- [092-target-5xx-metric.jpg](images/092-target-5xx-metric.jpg)
-- [093-alb-statistic-menu.jpg](images/093-alb-statistic-menu.jpg)
-- [094-alb-sum.jpg](images/094-alb-sum.jpg)
-- [095-alb-period-menu.jpg](images/095-alb-period-menu.jpg)
-- [096-alb-one-minute.jpg](images/096-alb-one-minute.jpg)
-- [097-alb-greater-equal.jpg](images/097-alb-greater-equal.jpg)
-- [098-alb-five-errors.jpg](images/098-alb-five-errors.jpg)
-- [099-alb-actions.jpg](images/099-alb-actions.jpg)
-- [100-alb-sns-option.jpg](images/100-alb-sns-option.jpg)
-- [101-alb-alert-arn.jpg](images/101-alb-alert-arn.jpg)
-- [102-alb-name-form.jpg](images/102-alb-name-form.jpg)
-- [103-alb-alarm-name.jpg](images/103-alb-alarm-name.jpg)
-- [104-alb-alarm-review.jpg](images/104-alb-alarm-review.jpg)
-- [105-four-alarms-created.jpg](images/105-four-alarms-created.jpg)
-- [106-four-alarms-dlq-alarm.jpg](images/106-four-alarms-dlq-alarm.jpg)
-- [107-dlq-alarm-detail.jpg](images/107-dlq-alarm-detail.jpg)
+![Cấu hình Memory alarm trước khi lưu](images/081-memory-review.jpg)
+
+Hai alarm hiện giám sát `booking-service`; chưa mở rộng sang `room-service` và `notification-service`. Đây là cảnh báo vận hành, chưa phải chính sách ECS Auto Scaling.
+
+### Cấu hình cảnh báo lỗi 5XX từ target của ALB
+
+Em kiểm tra danh sách load balancer để xác định đúng ALB đang tồn tại, do CloudWatch còn lưu metric của một ALB cũ cùng tên. ALB được chọn là **`hotel-booking-alb`**, trạng thái **Active**, có dimension:
+
+`LoadBalancer=app/hotel-booking-alb/4bb29c65802c7069`
+
+![ALB hotel-booking-alb hiện hành trên EC2 Console](images/089-current-load-balancers.jpg)
+
+Em tạo alarm **`ALB-High-Target-5XX-Errors`** với namespace `AWS/ApplicationELB`, metric **`HTTPCode_Target_5XX_Count`**, thống kê **Sum**, chu kỳ **60 giây** và điều kiện **≥5 lỗi trong một kỳ đánh giá**. Metric này đếm lỗi HTTP 5XX do ứng dụng phía target trả về; không phải metric lỗi do chính ALB tạo ra.
+
+Trong danh sách metric gần đây chưa có metric lỗi target cần dùng. Em chọn dimension của ALB hiện hành rồi sửa tên metric trong biểu mẫu Console thành `HTTPCode_Target_5XX_Count`. Cấu hình đã được AWS lưu; cần phát sinh dữ liệu thực tế để xác nhận alarm chuyển trạng thái theo đúng ngưỡng.
+
+![Cấu hình ALB target 5XX: Sum, một phút, ngưỡng năm lỗi và SNS action](images/104-alb-alarm-review.jpg)
+
+### Cấu hình cảnh báo tin nhắn lỗi trong DLQ
+
+Em tạo alarm **`SQS-DLQ-Has-Poison-Messages`** theo dõi queue **`booking-notification-dlq`**. Alarm sử dụng metric `ApproximateNumberOfMessagesVisible` trong namespace `AWS/SQS`, dimension `QueueName=booking-notification-dlq`, thống kê **Maximum**, chu kỳ **60 giây**, điều kiện **≥1 tin nhắn trong một kỳ đánh giá**.
+
+Mục đích là phát hiện khi DLQ còn tin nhắn chờ xử lý để nhóm kiểm tra nguyên nhân và có phương án xử lý lại. Giá trị Maximum giúp ghi nhận tình huống có ít nhất một tin nhắn nhìn thấy được trong kỳ đo.
+
+Sau khi tạo, alarm đã chuyển sang trạng thái **ALARM** dựa trên dữ liệu có sẵn của queue. Trong phiên này em không gửi thêm poison message và không xóa tin nhắn trong DLQ. Kết quả này chứng minh alarm đã đánh giá dữ liệu và kích hoạt; chưa thay thế cho kiểm thử luồng retry/redrive end-to-end.
+
+![Alarm DLQ đã chuyển sang trạng thái ALARM](images/107-dlq-alarm-detail.jpg)
+
+### Kiểm tra kết quả cấu hình
+
+AWS Console xác nhận đã tạo thành công cả bốn alarm. Các alarm đều bật actions, gửi sự kiện khi vào trạng thái `ALARM` tới `hotel-system-alerts`, và giữ cách xử lý dữ liệu thiếu là **Treat missing data as missing**.
+
+| Nội dung kiểm tra | Kết quả quan sát |
+|---|---|
+| SNS topic cảnh báo | Đã tạo `hotel-system-alerts`, loại Standard; chưa có subscription |
+| Danh sách CloudWatch Alarms | Có đủ bốn alarm đã cấu hình |
+| Alarm DLQ | Đã chuyển sang `ALARM` từ dữ liệu có sẵn |
+| Alarm CPU và Memory | `Insufficient data` tại thời điểm chụp |
+| Alarm ALB target 5XX | `Insufficient data` tại thời điểm chụp |
+| Kiểm thử bằng tải thật hoặc tạo lỗi 5XX | Chưa thực hiện trong phiên này |
+| Gửi cảnh báo tới email | Chưa kiểm thử vì SNS chưa có subscription |
+
+Trạng thái `Insufficient data` cho biết alarm chưa có đủ điểm dữ liệu để kết luận bình thường hay vượt ngưỡng; không được xem là kết quả kiểm thử thành công dưới tải.
+
+![Tổng hợp bốn alarm, trong đó DLQ đang ALARM](images/106-four-alarms-dlq-alarm.jpg)
+
+### Kiểm tra log và kết thúc buổi thực hành
+
+Em kiểm tra ba log group đang được hệ thống dùng: `/ecs/hotel/room-service`, `/ecs/hotel/booking-service` và `/ecs/hotel/notification-service`. Cả ba đã có retention **3 ngày** từ trước phiên này. Tên thực tế khác với tên dự kiến trong kế hoạch tuần 3; em ghi nhận theo tài nguyên hiện có, chưa đổi tên log group hoặc sửa cấu hình ECS.
+
+Đầu phiên, Learner Lab hiển thị **đã dùng $8.80/$50**, tương đương **còn $41.20**. Đây là số đầu phiên, không phải chi phí chốt sau khi thực hành.
+
+Sau khi hoàn tất cấu hình và lưu báo cáo lên nhánh `week-3`, em chọn **End Lab**. Giao diện Learner Lab xác nhận **AWS Status: Terminated**, thời gian **00:00**. Trong phiên này chưa kiểm tra riêng trạng thái RDS `Stopped` và ECS task bằng 0, nên việc End Lab không được dùng làm bằng chứng đã hoàn thành hai yêu cầu dọn tài nguyên đó.
+
+![Learner Lab xác nhận kết thúc phiên](images/108-end-lab-terminated.jpg)
+
+## Nghiên cứu dịch vụ
+
+1. **CloudWatch Metrics và Alarms:** Dùng namespace, metric và dimension để xác định đúng tài nguyên cần giám sát; kết hợp ngưỡng, chu kỳ và số kỳ đánh giá để quyết định lúc cảnh báo.
+2. **Amazon SNS:** Tập trung sự kiện cảnh báo vào một topic. Subscription là bước tiếp theo để chuyển thông báo tới người nhận hoặc hệ thống xử lý.
+3. **ALB target 5XX:** Phân biệt lỗi do target ứng dụng trả về với lỗi do ALB tạo ra, lựa chọn thống kê Sum để đếm số lỗi trong một phút.
+4. **SQS DLQ:** Dùng số tin nhắn nhìn thấy trong DLQ làm tín hiệu phát hiện sự kiện xử lý thất bại cần được kiểm tra.
+
+## Công việc chưa hoàn thành so với tasks.md tuần 3
+
+- Tạo sáu tham số SSM SecureString và chuyển thông tin kết nối DB trong ECS sang `secrets`; rà soát lại security group và public IP.
+- Thực hiện truy vấn Logs Insights theo correlation ID, xây dựng `HotelBooking-System-Dashboard`.
+- Cấu hình ECS Auto Scaling cho room/booking, triển khai image `v1.1.0` và phối hợp chạy tải thật để ghi nhận task tự co giãn.
+- Bổ sung SNS subscription, xác nhận thông báo tới người nhận và kiểm thử kích hoạt CPU/Memory/ALB alarm.
+- Thực thi và xác minh script bật/tắt; ghi nhật ký chi phí cuối phiên cùng bằng chứng RDS Stopped và ECS task bằng 0.
+
+**Sử dụng AI:** Em dùng AI hỗ trợ thao tác AWS Console, đối chiếu metric và cấu hình alarm, chụp ảnh minh chứng và biên tập báo cáo. Nội dung trên chỉ ghi nhận cấu hình và kết quả đã quan sát trong phiên ngày 24/10/2026.
