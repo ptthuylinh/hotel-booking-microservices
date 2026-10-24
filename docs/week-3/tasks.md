@@ -161,8 +161,8 @@ Bảng ghi nhận thực tế sau mỗi phiên thực hành trên AWS Academy Le
 - [ ] **Ảnh 2:** Cấu hình ECS Task Definition hiển thị trường `secrets` ánh xạ từ SSM Parameter ARN (không lộ plaintext).
 - [ ] **Ảnh 3:** Giao diện CloudWatch Log Groups cho 3 services với **Retention policy** được cấu hình về **3 ngày**.
 - [ ] **Ảnh 4:** Kết quả truy vấn **CloudWatch Logs Insights** hiển thị toàn bộ hành trình của 1 giao dịch xuyên suốt qua `correlationId`.
-- [ ] **Ảnh 5:** Danh sách 4 **CloudWatch Alarms** được cấu hình đầy đủ (High CPU, High Memory, ALB 5XX, SQS DLQ Messages).
-- [ ] **Ảnh 6:** CloudWatch Alarm kích hoạt trạng thái **ALARM** (đỏ) khi có poison message trong DLQ hoặc khi thực hiện stress test.
+- [x] **Ảnh 5:** Danh sách 4 **CloudWatch Alarms** được cấu hình đầy đủ (High CPU, High Memory, ALB 5XX, SQS DLQ Messages).
+- [x] **Ảnh 6:** CloudWatch Alarm kích hoạt trạng thái **ALARM** (đỏ) khi có poison message trong DLQ hoặc khi thực hiện stress test.
 - [ ] **Ảnh 7:** Giao diện tổng quan **CloudWatch Dashboard** (`HotelBooking-System-Dashboard`) hiển thị đầy đủ các widget chỉ số ECS, ALB, SQS và Logs.
 - [ ] **Ảnh 8 (Yêu cầu GVHD):** Cấu hình ECS Service Auto Scaling và ảnh chụp Task count tự động co giãn từ 1 lên 2 tasks khi chạy tải thật.
 - [ ] **Ảnh 9 (Yêu cầu GVHD):** Bảng ghi nhận chi phí và ảnh chụp AWS Billing / Credits còn lại kèm trạng thái RDS `Stopped` và ECS Tasks = 0.
@@ -176,3 +176,7 @@ Bảng ghi nhận thực tế sau mỗi phiên thực hành trên AWS Academy Le
 - [ ] **Ảnh 15:** Kiểm thử kịch bản Bồi hoàn (Compensating Rollback): Khi cố ý làm hỏng bước tiếp theo, phòng tự động được mở lại trạng thái `AVAILABLE`.
 - [ ] **Ảnh 16:** Kiểm thử kịch bản đưa tin nhắn lỗi vào SQS $\rightarrow$ sau 3 lần retry, tin nhắn vào DLQ và in log cảnh báo.
 - [ ] **Ảnh 17 (Yêu cầu GVHD):** Terminal thực thi kịch bản chạy tải thật (`scripts/load-test.ps1` hoặc `ab`/`k6`) hiển thị hàng trăm requests hoàn thành thành công.
+
+### Cập nhật Phúc ngày 24/10/2026
+
+Đã tạo SNS hotel-system-alerts và bốn alarm (mục 3); DLQ quan sát được trạng thái ALARM từ dữ liệu có sẵn. CPU/Memory giám sát booking-service; SNS chưa có subscription. Chưa hoàn thành các phần SSM, dashboard, scaling và load test. Chi tiết: [báo cáo Phúc](phuc/bao-cao-tuan-3.md).
