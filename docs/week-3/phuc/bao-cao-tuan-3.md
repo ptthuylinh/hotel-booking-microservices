@@ -3,10 +3,10 @@
 **Đề tài:** Hệ thống đặt phòng khách sạn với kiến trúc microservices trên ECS\
 **Sinh viên:** Cao Hoàng Phúc — MSSV `24110303`\
 **Phân công:** SSM Parameter Store, CloudWatch, ECS Auto Scaling và quản lý chi phí\
-**Trạng thái:** Đã hoàn thành cấu hình mục 3 — CloudWatch Metrics & Alarms; các mục còn lại đang thực hiện\
+**Trạng thái:** Đã triển khai SSM, image v1.1.0, logging, alarms, dashboard và chính sách Auto Scaling; chưa kiểm thử tải thật theo giới hạn chỉ dùng UI; đang chốt dọn tài nguyên cuối phiên\
 **Môi trường:** AWS Academy Learner Lab, tài khoản nhóm `055652951832`, Region `us-east-1`\
 **Repository:** https://github.com/pttlinh32/hotel-booking-microservices\
-**Ngày thực hiện:** 24/10/2026
+**Ngày thực hiện:** 24–25/10/2026
 
 ## Công việc đã làm
 
@@ -91,6 +91,59 @@ Sau khi hoàn tất cấu hình và lưu báo cáo lên nhánh `week-3`, em ch�
 
 ![Learner Lab xác nhận kết thúc phiên](images/108-end-lab-terminated.jpg)
 
+### Bảo mật kết nối database bằng SSM Parameter Store
+
+Em tạo đủ sáu tham số `SecureString` ở Standard tier, mã hóa bằng khóa `alias/aws/ssm`: `/hotel/database/room_url`, `room_username`, `room_password`, `booking_url`, `booking_username`, `booking_password` (cùng tiền tố `/hotel/database/`). Giá trị được đối chiếu từ cấu hình database hiện có trong Secrets Manager, không đổi mật khẩu và không đưa giá trị bí mật vào báo cáo.
+
+![Sáu tham số SecureString](images/163-six-ssm-securestrings.jpg)
+
+Trong ECS Console, em tạo revision 2 cho room và booking, chuyển cả ba biến `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD` sang `secrets.valueFrom` tham chiếu ARN SSM. Hai task definition tiếp tục dùng `LabRole`, mạng `awsvpc`, cổng container `8080` và image ECR tag `v1.1.0`. Notification cũng được cập nhật lên revision 2 với image `v1.1.0`; không thay đổi mã ứng dụng.
+
+![Task definition booking ánh xạ SSM và image v1.1.0](images/165-booking-ssm-v110-json.jpg)
+
+Em triển khai cả ba service với desired count 1. ECS Console xác nhận cả ba chạy 1/1 task. Booking có một target Healthy; log ghi nhận HikariPool thêm kết nối PostgreSQL và Tomcat khởi động ở cổng 8080. Đây là bằng chứng khởi động và kết nối database; chưa thay thế cho kiểm thử một giao dịch đặt phòng hoàn chỉnh.
+
+![Ba service chạy revision 2](images/285-all-services-state.jpg)
+
+Do private subnet chưa có NAT khi bắt đầu triển khai, em tạo NAT tạm `hotel-week3-nat-temp` (`nat-05f89d39857e9cd3b`) tại public subnet us-east-1a, dùng Elastic IP `18.214.73.140`. Hai route table private được thêm route `0.0.0.0/0` qua NAT để tải image và truy cập dịch vụ AWS. Đây là tài nguyên tính phí cần dọn sau kiểm thử. Task vẫn không được cấp public IP. Record DNS private `room-service.hotel.local` được sửa từ IP task cũ sang `10.0.143.249`, TTL 30 giây; cơ chế record tĩnh hiện tại cần cập nhật khi task thay IP.
+
+Em rà soát các inbound rule: ALB chỉ mở HTTP 80 từ Internet; chưa cấu hình listener HTTPS/certificate nên không tuyên bố đã có HTTPS 443. ECS cho phép TCP 8080 từ ALB SG và chính ECS SG. RDS chỉ cho phép PostgreSQL 5432 từ ECS SG, không mở database trực tiếp ra Internet.
+
+![ECS chỉ nhận 8080 từ ALB và nội bộ](images/324-ecs-security.jpg)
+![RDS nhận 5432 từ ECS SG](images/326-rds-security.jpg)
+
+### Giám sát log tập trung và truy vấn Logs Insights
+
+Ba log group thực tế là `/ecs/hotel/room-service`, `/ecs/hotel/booking-service`, `/ecs/hotel/notification-service`. Em giữ tên tài nguyên đang dùng để không chia tách lịch sử log; cả ba có retention 3 ngày. Cấu hình này được kiểm tra lại trên Console ngày 25/10.
+
+![Retention ba ngày cho ba service](images/327-log-groups-retention.jpg)
+
+Em chạy và lưu mẫu `hotel-errors-last-3h` trong Log Analytics/Logs Insights, truy vấn đồng thời ba log group, lọc `ERROR`, sắp xếp log mới nhất và giới hạn 100 dòng. AWS trả kết quả Complete, không có dòng ERROR khớp trong khoảng ba giờ được truy vấn; kết quả rỗng không được hiểu là đã kiểm thử mọi tình huống lỗi.
+
+![Query ERROR hoàn tất trên ba log group](images/308-insights-error-run.jpg)
+
+Mẫu `hotel-correlation-trace` cũng được lưu để trích correlation ID dạng UUID trong cặp ngoặc vuông của log, hiển thị timestamp, log group và thông điệp theo thứ tự thời gian. Lần truy vấn một ngày gần nhất chưa có dòng khớp, nên chưa có bằng chứng hành trình giao dịch xuyên ba service. Cần phát sinh giao dịch có correlation ID rồi truy vấn lại trước khi nghiệm thu E2E.
+
+![Mẫu correlation được lưu](images/320-correlation-query-saved.jpg)
+
+### Xây dựng dashboard vận hành
+
+Em tạo và lưu dashboard `HotelBooking-System-Dashboard` tại us-east-1 với bảy widget: CPU và Memory của cả ba ECS service; ALB RequestCount (Sum); TargetResponseTime (Average); HealthyHostCount (Minimum) của ba target group; số tin nhắn visible ở SQS queue và DLQ (Maximum); bảng log ERROR của ba service. Chu kỳ metric 60 giây, khoảng xem ban đầu ba giờ.
+
+Dashboard đã hiển thị dữ liệu thực của ECS, ALB và hai queue `booking-notification-queue`, `booking-notification-dlq`. Widget log ERROR chưa có dữ liệu khớp trong khoảng xem. Metric ALB được gắn với ALB hiện hành, không dùng dimension của ALB cũ.
+
+![Dashboard ECS và ALB](images/303-dashboard-final-saved.jpg)
+![Dashboard target groups, SQS và log lỗi](images/304-dashboard-sqs-logs.jpg)
+
+### Cấu hình ECS Service Auto Scaling
+
+Em tạo chính sách Target Tracking cho room và booking với cùng cấu hình: minimum 1, maximum 3 task, `ECSServiceAverageCPUUtilization` mục tiêu 50%, scale-out cooldown 60 giây và scale-in cooldown 120 giây. Tên chính sách là `room-cpu-target-50` và `booking-cpu-target-50`. Console hiển thị cả hai Active và phạm vi 1–3 task.
+
+![Room Auto Scaling Active](images/247-room-scaling-config.jpg)
+![Booking Auto Scaling Active](images/266-booking-scaling-active.jpg)
+
+Cấu hình chính sách đã hoàn tất; chưa có bằng chứng tăng task dưới tải thật. Đỉnh CPU khi khởi động container không được tính là kết quả load test. Người dùng xác nhận chỉ thao tác UI, không chạy script. Vì vậy phiên này không chạy load-test cục bộ, AWS CLI hoặc CloudShell; mục tăng task do tải thật chưa được nghiệm thu.
+
 ## Nghiên cứu dịch vụ
 
 1. **CloudWatch Metrics và Alarms:** Dùng namespace, metric và dimension để xác định đúng tài nguyên cần giám sát; kết hợp ngưỡng, chu kỳ và số kỳ đánh giá để quyết định lúc cảnh báo.
@@ -98,12 +151,34 @@ Sau khi hoàn tất cấu hình và lưu báo cáo lên nhánh `week-3`, em ch�
 3. **ALB target 5XX:** Phân biệt lỗi do target ứng dụng trả về với lỗi do ALB tạo ra, lựa chọn thống kê Sum để đếm số lỗi trong một phút.
 4. **SQS DLQ:** Dùng số tin nhắn nhìn thấy trong DLQ làm tín hiệu phát hiện sự kiện xử lý thất bại cần được kiểm tra.
 
-## Công việc chưa hoàn thành so với tasks.md tuần 3
+### Chốt vận hành ngày 25/10/2026
 
-- Tạo sáu tham số SSM SecureString và chuyển thông tin kết nối DB trong ECS sang `secrets`; rà soát lại security group và public IP.
-- Thực hiện truy vấn Logs Insights theo correlation ID, xây dựng `HotelBooking-System-Dashboard`.
-- Cấu hình ECS Auto Scaling cho room/booking, triển khai image `v1.1.0` và phối hợp chạy tải thật để ghi nhận task tự co giãn.
-- Bổ sung SNS subscription, xác nhận thông báo tới người nhận và kiểm thử kích hoạt CPU/Memory/ALB alarm.
-- Thực thi và xác minh script bật/tắt; ghi nhật ký chi phí cuối phiên cùng bằng chứng RDS Stopped và ECS task bằng 0.
+Em kiểm tra form cấu hình RDS: `Not publicly accessible` được chọn, port 5432. Sau đó thoát form và gửi yêu cầu Stop temporarily, không thay đổi thông số database. RDS chuyển sang Stopping. AWS thông báo instance tự khởi động lại sau tối đa bảy ngày; dừng instance không loại bỏ phí storage và backup.
 
-**Sử dụng AI:** Em dùng AI hỗ trợ thao tác AWS Console, đối chiếu metric và cấu hình alarm, chụp ảnh minh chứng và biên tập báo cáo. Nội dung trên chỉ ghi nhận cấu hình và kết quả đã quan sát trong phiên ngày 24/10/2026.
+![RDS không public](images/334-rds-public-access.jpg)
+![RDS đang dừng](images/341-rds-stopping.jpg)
+
+Em hạ desired count cả ba service về 0 bằng UI. Với room và booking, minimum của Auto Scaling cũng hạ từ 1 về 0 trong thời gian nghỉ; maximum 3 và policy CPU50 vẫn được giữ. Khi mở lại phiên kiểm thử cần phục hồi minimum1 và desired1. Danh sách ECS xác nhận cả ba service 0/0 Tasks running.
+
+![Ba service đã về0](images/364-ecs-stopped.jpg)
+
+| Ngày ghi nhận | Tổng đã dùng hiển thị | Còn lại trên hạn mức50USD | Trạng thái |
+|---|---:|---:|---|
+| 24/10/2026 đầu phiên | $8.80 | $41.20 | Số đầu phiên, không phải chốt chi phí |
+| 25/10/2026 cuối thao tác | $10.20 | $39.80 | ECS0/0; RDS đang Stopping khi chụp; NAT/EIP đang chờ xác nhận dọn |
+
+Số ngân sách do Learner Lab hiển thị có độ trễ, không đại diện cho hóa đơn tức thời hoặc riêng chi phí phiên này.
+
+![Ngân sách Lab ngày25/10](images/365-lab-budget-oct25.jpg)
+
+## Công việc còn cần nghiệm thu
+
+- Phát sinh giao dịch có correlation ID và ghi nhận truy vết xuyên các service.
+- Chạy tải thật và ghi bằng chứng Auto Scaling tự tăng task; chưa dùng thay đổi desired count thủ công để thay kết quả này.
+- Xác nhận health cuối cùng của cả ba target group khi thực hiện kiểm thử E2E. RDS đã được kiểm tra: Not publicly accessible, port 5432 (ảnh 334).
+- Rà soát, thực thi bộ script vận hành khi được phép dùng CLI; hiện các thao tác AWS đã thực hiện bằng UI theo yêu cầu. Script stop hiện có chưa xử lý giới hạn minimum 1 của Auto Scaling nên cần sửa trước khi chạy.
+- Chốt chi phí, đưa ECS về 0, stop RDS, dọn NAT/EIP tạm và xác nhận End Lab sau khi hoàn tất kiểm thử.
+
+SNS chưa có subscription; không tuyên bố đã gửi email cảnh báo. Bốn alarm đã cấu hình và DLQ từng ALARM từ dữ liệu có sẵn, chưa kiểm thử riêng toàn bộ ngưỡng CPU/Memory/5XX.
+
+**Sử dụng AI:** Em dùng AI hỗ trợ thao tác AWS Console bằng UI, đối chiếu cấu hình, chụp ảnh minh chứng và biên tập báo cáo. Chỉ ghi nhận những cấu hình và kết quả đã quan sát, không ghi kiểm thử chưa chạy là hoàn thành.
