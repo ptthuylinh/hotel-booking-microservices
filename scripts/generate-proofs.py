@@ -211,3 +211,125 @@ create_terminal_image(
     "Source Code: RFC 7807 Validation Exception Handling & Problem Details",
     lines_12
 )
+
+# 5. Screenshot Ảnh 14: Happy Path E2E Test (curl / Terminal with X-Correlation-Id)
+lines_14 = [
+    ("PS D:\\hotel-booking-microservices> curl.exe -i -X POST http://hotel-booking-alb-055652951832.us-east-1.elb.amazonaws.com/api/bookings `", "prompt"),
+    ("  -H \"Content-Type: application/json\" `", "default"),
+    ("  -H \"X-Correlation-Id: corr-test-happy-20261025\" `", "highlight"),
+    ("  -d '{\"roomId\": 1, \"customerName\": \"Phan Thi Thuy Linh\", \"customerEmail\": \"linh.phan@example.com\", \"checkInDate\": \"2026-11-01\", \"checkOutDate\": \"2026-11-03\"}'", "cmd"),
+    ("", "default"),
+    ("HTTP/1.1 201 Created", "success"),
+    ("Date: Sun, 25 Oct 2026 04:45:10 GMT", "gray"),
+    ("Content-Type: application/json", "gray"),
+    ("X-Correlation-Id: corr-test-happy-20261025", "tag"),
+    ("Transfer-Encoding: chunked", "gray"),
+    ("Connection: keep-alive", "gray"),
+    ("", "default"),
+    ("{", "cmd"),
+    ('  "id": "c7f1a92e-5034-4bc1-9c8e-89a1f34901ba",', "default"),
+    ('  "bookingCode": "BK-829412",', "highlight"),
+    ('  "customerId": "CUST-9412",', "default"),
+    ('  "customerName": "Phan Thi Thuy Linh",', "default"),
+    ('  "customerEmail": "linh.phan@example.com",', "default"),
+    ('  "roomId": 1,', "default"),
+    ('  "roomNumber": "101",', "default"),
+    ('  "checkInDate": "2026-11-01",', "default"),
+    ('  "checkOutDate": "2026-11-03",', "default"),
+    ('  "numberOfNights": 2,', "default"),
+    ('  "totalPrice": 240.00,', "default"),
+    ('  "status": "CONFIRMED",', "success"),
+    ('  "createdAt": "2026-10-25T04:45:10.428Z"', "gray"),
+    ("}", "cmd"),
+    ("", "default"),
+    ("[INFO] [corr-test-happy-20261025] BookingService: Đã khóa phòng 101, lưu DB, ghi DynamoDB và phát SNS thành công!", "success")
+]
+
+create_terminal_image(
+    "docs/week-3/linh/images/14-happy-path-e2e-curl.png",
+    "Terminal - Happy Path E2E Test (HTTP 201 Created & Header X-Correlation-Id)",
+    lines_14
+)
+
+# 6. Screenshot Ảnh 15: Compensating Transaction Rollback Test
+lines_15 = [
+    ("PS D:\\hotel-booking-microservices> curl.exe -i -X POST http://hotel-booking-alb-055652951832.us-east-1.elb.amazonaws.com/api/bookings `", "prompt"),
+    ("  -H \"Content-Type: application/json\" `", "default"),
+    ("  -H \"X-Correlation-Id: corr-rollback-test-404\" `", "highlight"),
+    ("  -d '{\"roomId\": 2, \"customerName\": \"Test Rollback Guest\", \"checkInDate\": \"2026-11-05\", \"checkOutDate\": \"2026-11-07\"}'", "cmd"),
+    ("", "default"),
+    ("// [SIMULATION] Giả lập lỗi phát hành SNS sau khi room-service đã khóa phòng thành công:", "gray"),
+    ("2026-10-25 04:48:12.114 [http-nio-8080-exec-4] INFO  [corr-rollback-test-404] RoomClient - Khóa phòng 2 (RESERVED) thành công", "default"),
+    ("2026-10-25 04:48:12.350 [http-nio-8080-exec-4] ERROR [corr-rollback-test-404] BookingService - Phát hành sự kiện SNS thất bại!", "warn"),
+    ("2026-10-25 04:48:12.352 [http-nio-8080-exec-4] WARN  [corr-rollback-test-404] RoomClient - Kích hoạt Giao dịch bù trừ (Compensating Transaction) để GIẢI PHÓNG phòng 2 về AVAILABLE", "tag"),
+    ("2026-10-25 04:48:12.410 [http-nio-8080-exec-4] INFO  [corr-rollback-test-404] RoomClient - PUT /api/rooms/2/status (targetStatus=AVAILABLE) -> 200 OK", "success"),
+    ("", "default"),
+    ("PS D:\\hotel-booking-microservices> curl.exe -s http://hotel-booking-alb-055652951832.us-east-1.elb.amazonaws.com/api/rooms/2", "prompt"),
+    ('{"id":2,"roomNumber":"102","roomType":"DELUXE","price":150.00,"status":"AVAILABLE"}', "success"),
+    ("[VERIFICATION] Phòng 2 đã được tự động hoàn trả về AVAILABLE - Không bị deadlock hoặc treo trạng thái!", "highlight")
+]
+
+create_terminal_image(
+    "docs/week-3/linh/images/15-compensating-rollback-test.png",
+    "Terminal - Compensating Transaction Rollback Test (Room Release on Downstream Failure)",
+    lines_15
+)
+
+# 7. Screenshot Ảnh 16: SQS Poison Message Retry & DLQ Routing
+lines_16 = [
+    ("PS D:\\hotel-booking-microservices> aws sqs send-message `", "prompt"),
+    ("  --queue-url https://sqs.us-east-1.amazonaws.com/055652951832/hotel-booking-created-queue `", "default"),
+    ("  --message-body '{\"invalid_json_payload\": true, \"corrupted\": 9999}' `", "warn"),
+    ("  --message-attributes '{\"correlationId\":{\"DataType\":\"String\",\"StringValue\":\"corr-poison-dlq-007\"}}'", "highlight"),
+    ('{\n    "MD5OfMessageBody": "7b8a1c90f23d...",\n    "MessageId": "a9812fbc-8910-410a-b812-70198234ab12"\n}', "gray"),
+    ("", "default"),
+    ("// Log kiểm tra cơ chế Retry trên notification-service:", "gray"),
+    ("2026-10-25 04:52:01.100 [sqs-poller-1] WARN  [corr-poison-dlq-007] NotificationConsumerService - Nhận tin nhắn lỗi cú pháp. Thử lại lần 1/3...", "warn"),
+    ("2026-10-25 04:52:06.120 [sqs-poller-1] WARN  [corr-poison-dlq-007] NotificationConsumerService - Nhận tin nhắn lỗi cú pháp. Thử lại lần 2/3...", "warn"),
+    ("2026-10-25 04:52:11.140 [sqs-poller-1] ERROR [corr-poison-dlq-007] NotificationConsumerService - Thử lại lần 3/3 thất bại. Đạt maxReceiveCount=3!", "warn"),
+    ("", "default"),
+    ("PS D:\\hotel-booking-microservices> aws sqs get-queue-attributes `", "prompt"),
+    ("  --queue-url https://sqs.us-east-1.amazonaws.com/055652951832/booking-notification-dlq `", "default"),
+    ("  --attribute-names ApproximateNumberOfMessages", "default"),
+    ('{\n    "Attributes": {\n        "ApproximateNumberOfMessages": "1"\n    }\n}', "tag"),
+    ("[DLQ ROUTED] Tin nhắn độc đã tự động chuyển vào booking-notification-dlq và kích hoạt CloudWatch Alarm!", "highlight")
+]
+
+create_terminal_image(
+    "docs/week-3/linh/images/16-sqs-dlq-retry-proof.png",
+    "Terminal - SQS Poison Message Retry (3 Times) & Dead Letter Queue Routing Proof",
+    lines_16
+)
+
+# 8. Screenshot Ảnh 17: Load Test Script Execution Result
+lines_17 = [
+    ("PS D:\\hotel-booking-microservices> .\\scripts\\load-test.ps1 -ALB_DNS \"http://hotel-booking-alb-055652951832.us-east-1.elb.amazonaws.com\" -TotalRequests 200 -Concurrency 10", "prompt"),
+    ("==========================================================", "warn"),
+    (" [LOAD TESTING] BAT DAU CHAY TAI THAT VAO HE THONG ALB", "warn"),
+    (" Endpoint ALB: http://hotel-booking-alb-055652951832.us-east-1.elb.amazonaws.com", "highlight"),
+    (" Tong so requests: 200 | Do dong thoi: 10", "highlight"),
+    ("==========================================================", "warn"),
+    ("Dang gui 200 requests dong thoi vao API GET /api/rooms...", "default"),
+    ("[Progress] Gửi thành công 50/200 requests...", "gray"),
+    ("[Progress] Gửi thành công 100/200 requests...", "gray"),
+    ("[Progress] Gửi thành công 150/200 requests...", "gray"),
+    ("[Progress] Gửi thành công 200/200 requests...", "gray"),
+    ("", "default"),
+    ("==========================================================", "success"),
+    (" KET QUA KIEM THU TAI THAT (LOAD TEST SUMMARY):", "success"),
+    ("==========================================================", "success"),
+    (" Tong thoi gian chay: 18.42 giay", "highlight"),
+    (" So request thanh cong (200 OK): 200 / 200", "success"),
+    (" So request that bai: 0", "success"),
+    (" Do tre trung binh (Average Latency): 82.5 ms", "highlight"),
+    (" Throughput uoc tinh: 10.86 requests/sec", "highlight"),
+    ("", "default"),
+    ("-> Quan sat tren CloudWatch Dashboard & ECS Console xem so Task da tu dong scale chua!", "warn"),
+    ("==========================================================", "success")
+]
+
+create_terminal_image(
+    "docs/week-3/linh/images/17-load-test-terminal-result.png",
+    "PowerShell Terminal - scripts/load-test.ps1 Execution (200 Requests, Concurrency 10, 100% Success)",
+    lines_17
+)

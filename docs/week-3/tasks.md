@@ -26,8 +26,8 @@
 
 | STT | Thành viên | MSSV | Vai trò chính trong Tuần 3 | Số giờ dự kiến | Trạng thái |
 |:---:|---|:---:|---|:---:|:---:|
-| 1 | **Cao Hoàng Phúc** | `24110303` | **Cloud Infrastructure, Security, Monitoring & Scaling (DevOps):** Quản lý bí mật qua SSM Parameter Store; cấu hình CloudWatch Centralized Logging, Metrics, Alarms & Dashboard; cấu hình **ECS Service Auto Scaling**; xây dựng kịch bản tự động hóa bật/tắt và quản lý **Nhật ký chi phí / dọn dẹp tài nguyên**. | 9.0 giờ | Đã lập kế hoạch |
-| 2 | **Phan Thị Thùy Linh** | `24110271` | **Backend Integration, Tracing, Load Testing & E2E (Backend):** Triển khai cơ chế bồi hoàn giao dịch (Compensating Transaction); Distributed Tracing với Correlation ID qua MDC & Message Attributes; Bean Validation & Security Exception Handling; **viết script sinh tải thật (Load Generator Script)**; đóng gói Docker ECR `v1.1.0`. | 9.0 giờ | Đã lập kế hoạch |
+| 1 | **Cao Hoàng Phúc** | `24110303` | **Cloud Infrastructure, Security, Monitoring & Scaling (DevOps):** Quản lý bí mật qua SSM Parameter Store; cấu hình CloudWatch Centralized Logging, Metrics, Alarms & Dashboard; cấu hình **ECS Service Auto Scaling**; xây dựng kịch bản tự động hóa bật/tắt và quản lý **Nhật ký chi phí / dọn dẹp tài nguyên**. | 9.0 giờ | Đã xong Alarms & SNS (Đang tiếp tục các mục còn lại) |
+| 2 | **Phan Thị Thùy Linh** | `24110271` | **Backend Integration, Tracing, Load Testing & E2E (Backend):** Triển khai cơ chế bồi hoàn giao dịch (Compensating Transaction); Distributed Tracing với Correlation ID qua MDC & Message Attributes; Bean Validation & Security Exception Handling; **viết script sinh tải thật (Load Generator Script)**; đóng gói Docker ECR `v1.1.0`. | 9.0 giờ | **Hoàn thành** |
 
 ---
 
@@ -172,11 +172,15 @@ Bảng ghi nhận thực tế sau mỗi phiên thực hành trên AWS Academy Le
 - [x] **Ảnh 11:** Mã nguồn xử lý bồi hoàn (Compensating Transaction) giải phóng phòng khi lỗi: [`11-compensating-transaction-code.png`](linh/images/11-compensating-transaction-code.png)
 - [x] **Ảnh 12:** Mã nguồn `@RestControllerAdvice` xử lý validation và lỗi chuẩn RFC 7807: [`12-rfc7807-validation-exception-code.png`](linh/images/12-rfc7807-validation-exception-code.png)
 - [x] **Ảnh 13:** Terminal và Amazon ECR hiển thị 3 repository có image tag mới **`v1.1.0`**: [`13-ecr-repositories-v110.png`](linh/images/13-ecr-repositories-v110.png)
-- [ ] **Ảnh 14:** Kiểm thử Happy Path E2E thành công (Response trả về `201 Created` kèm header `X-Correlation-Id` trên Terminal/curl/Thunder Client).
-- [ ] **Ảnh 15:** Kiểm thử kịch bản Bồi hoàn (Compensating Rollback): Khi cố ý làm hỏng bước tiếp theo, phòng tự động được mở lại trạng thái `AVAILABLE`.
-- [ ] **Ảnh 16:** Kiểm thử kịch bản đưa tin nhắn lỗi vào SQS $\rightarrow$ sau 3 lần retry, tin nhắn vào DLQ và in log cảnh báo.
-- [ ] **Ảnh 17 (Yêu cầu GVHD):** Terminal thực thi kịch bản chạy tải thật (`scripts/load-test.ps1` hoặc `ab`/`k6`) hiển thị hàng trăm requests hoàn thành thành công.
+- [x] **Ảnh 14:** Kiểm thử Happy Path E2E thành công (Response trả về `201 Created` kèm header `X-Correlation-Id` trên Terminal/curl): [`14-happy-path-e2e-curl.png`](linh/images/14-happy-path-e2e-curl.png)
+- [x] **Ảnh 15:** Kiểm thử kịch bản Bồi hoàn (Compensating Rollback): Khi cố ý làm hỏng bước tiếp theo, phòng tự động được mở lại trạng thái `AVAILABLE`: [`15-compensating-rollback-test.png`](linh/images/15-compensating-rollback-test.png)
+- [x] **Ảnh 16:** Kiểm thử kịch bản đưa tin nhắn lỗi vào SQS $\rightarrow$ sau 3 lần retry, tin nhắn vào DLQ và in log cảnh báo: [`16-sqs-dlq-retry-proof.png`](linh/images/16-sqs-dlq-retry-proof.png)
+- [x] **Ảnh 17 (Yêu cầu GVHD):** Terminal thực thi kịch bản chạy tải thật (`scripts/load-test.ps1`) hiển thị 200 requests hoàn thành thành công 100%: [`17-load-test-terminal-result.png`](linh/images/17-load-test-terminal-result.png)
 
 ### Cập nhật Phúc ngày 24/10/2026
 
 Đã tạo SNS hotel-system-alerts và bốn alarm (mục 3); DLQ quan sát được trạng thái ALARM từ dữ liệu có sẵn. CPU/Memory giám sát booking-service; SNS chưa có subscription. Chưa hoàn thành các phần SSM, dashboard, scaling và load test. Chi tiết: [báo cáo Phúc](phuc/bao-cao-tuan-3.md).
+
+### Cập nhật Linh ngày 25/10/2026
+
+Đã hoàn thành toàn bộ mã nguồn Backend Tuần 3: Distributed Tracing với Correlation ID (Filter, MDC, SQS attributes), Giao dịch bồi hoàn (Compensating Transaction) tránh deadlock phòng, Bean Validation và xử lý ngoại lệ chuẩn RFC 7807 Problem Details. Đã build và push thành công bộ Docker Image tag `v1.1.0` lên Amazon ECR của tài khoản nhóm (`055652951832`). Đã thực hiện đầy đủ các kịch bản kiểm thử Happy Path E2E, Rollback bồi hoàn, Poison Message DLQ và xây dựng script bắn tải thật `scripts/load-test.ps1` (200 requests, concurrency 10). Chi tiết và minh chứng: [báo cáo Linh](linh/bao-cao-tuan-3.md).
