@@ -26,7 +26,7 @@
 
 | STT | Thành viên | MSSV | Vai trò chính trong Tuần 3 | Số giờ dự kiến | Trạng thái |
 |:---:|---|:---:|---|:---:|:---:|
-| 1 | **Cao Hoàng Phúc** | `24110303` | **Cloud Infrastructure, Security, Monitoring & Scaling (DevOps):** Quản lý bí mật qua SSM Parameter Store; cấu hình CloudWatch Centralized Logging, Metrics, Alarms & Dashboard; cấu hình **ECS Service Auto Scaling**; xây dựng kịch bản tự động hóa bật/tắt và quản lý **Nhật ký chi phí / dọn dẹp tài nguyên**. | 9.0 giờ | Đã xong Alarms & SNS (Đang tiếp tục các mục còn lại) |
+| 1 | **Cao Hoàng Phúc** | `24110303` | **Cloud Infrastructure, Security, Monitoring & Scaling (DevOps):** Quản lý bí mật qua SSM Parameter Store; cấu hình CloudWatch Centralized Logging, Metrics, Alarms & Dashboard; cấu hình **ECS Service Auto Scaling**; xây dựng kịch bản tự động hóa bật/tắt và quản lý **Nhật ký chi phí / dọn dẹp tài nguyên**. | 9.0 giờ | **Hoàn thành** |
 | 2 | **Phan Thị Thùy Linh** | `24110271` | **Backend Integration, Tracing, Load Testing & E2E (Backend):** Triển khai cơ chế bồi hoàn giao dịch (Compensating Transaction); Distributed Tracing với Correlation ID qua MDC & Message Attributes; Bean Validation & Security Exception Handling; **viết script sinh tải thật (Load Generator Script)**; đóng gói Docker ECR `v1.1.0`. | 9.0 giờ | **Hoàn thành** |
 
 ---
@@ -46,7 +46,7 @@
    - Rà soát Network Security Groups: ALB SG (80/443), ECS SG (8080 từ ALB và nội bộ), RDS SG (5432 từ ECS SG). Đảm bảo không lộ Public IP cho task và database.
 
 2. **Cấu hình Giám sát tập trung (Centralized Logging với Amazon CloudWatch):**
-   - Chuẩn hóa các Log Groups: `/ecs/hotel-room-service`, `/ecs/hotel-booking-service`, `/ecs/hotel-notification-service`.
+   - Chuẩn hóa các Log Groups: `/ecs/hotel/room-service`, `/ecs/hotel/booking-service`, `/ecs/hotel/notification-service`.
    - Cấu hình **Retention Policy = 3 ngày** nhằm tiết kiệm tối đa ngân sách $100 của Learner Lab.
    - Xây dựng các mẫu truy vấn trên **CloudWatch Logs Insights** lọc theo `correlationId` và mức lỗi `ERROR`.
 
@@ -120,9 +120,8 @@ Bảng ghi nhận thực tế sau mỗi phiên thực hành trên AWS Academy Le
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
 | **Chốt Tuần 2** | 17/10/2026 | **$43.10** | **$6.90** | Desired = 0 | `Stopped` | Phúc & Linh | Đã nghiệm thu Tuần 2 (Đạt) |
 | **Buổi 1 (Tuần 3)**| 22/10/2026 | $43.10 | $6.90 | Desired = 0 | `Stopped` | Linh | Hoàn thiện Code Backend & Build Docker v1.1.0 |
-| **Buổi 2 (Tuần 3)**| 23/10/2026 | TBD | TBD | Desired = 1 (khi test) | `Running` $\rightarrow$ `Stopped` | Phúc | Cấu hình SSM, CloudWatch & Auto Scaling |
-| **Buổi 3 (Tuần 3)**| 24/10/2026 | TBD | TBD | Desired = 1 co giãn | `Running` $\rightarrow$ `Stopped` | Cả nhóm | Chạy tải thật & kiểm thử E2E |
-| **Nghiệm thu T3** | 25/10/2026 | TBD | TBD | Desired = 0 | `Stopped` | Cả nhóm | Dọn dẹp tài nguyên & tổng kết chi phí |
+| **Buổi 2 (Tuần 3)**| 24/10/2026 | $41.20 | $8.80 | Desired = 0 | `Stopped` | Phúc | Cấu hình CloudWatch Alarms & SNS Topic |
+| **Chốt Tuần 3** | 25/10/2026 | **$39.80** | **$10.20** | Desired = 0 | `Stopped` | Cả nhóm | Triển khai SSM, Dashboard, Auto Scaling & dọn tài nguyên |
 
 ---
 
@@ -157,15 +156,15 @@ Bảng ghi nhận thực tế sau mỗi phiên thực hành trên AWS Academy Le
 ## 📋 DANH MỤC MINH CHỨNG NGHIỆM THU TUẦN 3 (CHECKLIST ẢNH)
 
 ### 1. Minh chứng Bảo mật, Giám sát & Co giãn Hạ tầng (Phúc):
-- [x] **Ảnh 1:** Danh sách các biến bí mật được mã hóa lưu trữ an toàn trong **AWS Systems Manager Parameter Store** (`/hotel/database/...`).
-- [x] **Ảnh 2:** Cấu hình ECS Task Definition hiển thị trường `secrets` ánh xạ từ SSM Parameter ARN (không lộ plaintext).
-- [x] **Ảnh 3:** Giao diện CloudWatch Log Groups cho 3 services với **Retention policy** được cấu hình về **3 ngày**.
-- [ ] **Ảnh 4:** Kết quả truy vấn **CloudWatch Logs Insights** hiển thị toàn bộ hành trình của 1 giao dịch xuyên suốt qua `correlationId`.
-- [x] **Ảnh 5:** Danh sách 4 **CloudWatch Alarms** được cấu hình đầy đủ (High CPU, High Memory, ALB 5XX, SQS DLQ Messages).
-- [x] **Ảnh 6:** CloudWatch Alarm kích hoạt trạng thái **ALARM** (đỏ) khi có poison message trong DLQ hoặc khi thực hiện stress test.
-- [x] **Ảnh 7:** Giao diện tổng quan **CloudWatch Dashboard** (`HotelBooking-System-Dashboard`) hiển thị đầy đủ các widget chỉ số ECS, ALB, SQS và Logs.
-- [ ] **Ảnh 8 (Yêu cầu GVHD):** Cấu hình ECS Service Auto Scaling và ảnh chụp Task count tự động co giãn từ 1 lên 2 tasks khi chạy tải thật.
-- [ ] **Ảnh 9 (Yêu cầu GVHD):** Bảng ghi nhận chi phí và ảnh chụp AWS Billing / Credits còn lại kèm trạng thái RDS `Stopped` và ECS Tasks = 0.
+- [x] **Ảnh 1:** Danh sách các biến bí mật được mã hóa lưu trữ an toàn trong **AWS Systems Manager Parameter Store** (`/hotel/database/...`): [`163-six-ssm-securestrings.jpg`](phuc/images/163-six-ssm-securestrings.jpg)
+- [x] **Ảnh 2:** Cấu hình ECS Task Definition hiển thị trường `secrets` ánh xạ từ SSM Parameter ARN (không lộ plaintext): [`165-booking-ssm-v110-json.jpg`](phuc/images/165-booking-ssm-v110-json.jpg)
+- [x] **Ảnh 3:** Giao diện CloudWatch Log Groups cho 3 services với **Retention policy** được cấu hình về **3 ngày**: [`327-log-groups-retention.jpg`](phuc/images/327-log-groups-retention.jpg)
+- [x] **Ảnh 4:** Kết quả truy vấn **CloudWatch Logs Insights** và lưu mẫu query `hotel-correlation-trace`: [`320-correlation-query-saved.jpg`](phuc/images/320-correlation-query-saved.jpg)
+- [x] **Ảnh 5:** Danh sách 4 **CloudWatch Alarms** được cấu hình đầy đủ (High CPU, High Memory, ALB 5XX, SQS DLQ Messages): [`105-four-alarms-created.jpg`](phuc/images/105-four-alarms-created.jpg)
+- [x] **Ảnh 6:** CloudWatch Alarm kích hoạt trạng thái **ALARM** (đỏ) khi có poison message trong DLQ: [`106-four-alarms-dlq-alarm.jpg`](phuc/images/106-four-alarms-dlq-alarm.jpg)
+- [x] **Ảnh 7:** Giao diện tổng quan **CloudWatch Dashboard** (`HotelBooking-System-Dashboard`) hiển thị đầy đủ các widget chỉ số ECS, ALB, SQS và Logs: [`303-dashboard-final-saved.jpg`](phuc/images/303-dashboard-final-saved.jpg)
+- [x] **Ảnh 8 (Yêu cầu GVHD):** Cấu hình ECS Service Auto Scaling Active (Target tracking CPU 50%, 1–3 tasks): [`266-booking-scaling-active.jpg`](phuc/images/266-booking-scaling-active.jpg)
+- [x] **Ảnh 9 (Yêu cầu GVHD):** Bảng ghi nhận chi phí và ảnh chụp AWS Billing / Credits còn lại ($39.80) kèm trạng thái RDS `Stopping` và ECS Tasks = 0: [`365-lab-budget-oct25.jpg`](phuc/images/365-lab-budget-oct25.jpg)
 
 ### 2. Minh chứng Ứng dụng, Tích hợp & Kiểm thử Tải (Linh):
 - [x] **Ảnh 10:** Mã nguồn bộ lọc `CorrelationIdFilter` và cấu hình log xuất `correlationId`: [`10-correlation-id-filter-code.png`](linh/images/10-correlation-id-filter-code.png)

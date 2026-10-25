@@ -18,7 +18,7 @@
 | STT | Thành viên | MSSV | Vai trò chính trong Tuần 3 | Số giờ | Trạng thái |
 |:---:|---|:---:|---|:---:|:---:|
 | 1 | **Phan Thị Thùy Linh** | `24110271` | **Backend Integration, Tracing, Security & Load Testing:** Triển khai cơ chế bồi hoàn giao dịch (Compensating Transaction); Distributed Tracing với Correlation ID qua MDC & SQS Message Attributes; Bean Validation & RFC 7807 Error Handling; viết kịch bản bắn tải thật `scripts/load-test.ps1`; đóng gói Docker ECR `v1.1.0`. | 9.0 giờ | Hoàn thành |
-| 2 | **Cao Hoàng Phúc** | `24110303` | **Cloud Infrastructure, Monitoring & Cost Tracking:** Quản lý tham số SSM Parameter Store (SecureString); cấu hình CloudWatch Centralized Logging, 4 CloudWatch Alarms & Dashboard; cấu hình ECS Auto Scaling; quản lý nhật ký chi phí Learner Lab. | 9.0 giờ | Đã xong mục Alarms & SNS (Đang tiếp tục các mục còn lại) |
+| 2 | **Cao Hoàng Phúc** | `24110303` | **Cloud Infrastructure, Monitoring & Cost Tracking:** Quản lý tham số SSM Parameter Store (SecureString); cấu hình CloudWatch Centralized Logging, 4 CloudWatch Alarms & Dashboard; cấu hình ECS Auto Scaling; quản lý nhật ký chi phí Learner Lab. | 9.0 giờ | Hoàn thành |
 
 ---
 
