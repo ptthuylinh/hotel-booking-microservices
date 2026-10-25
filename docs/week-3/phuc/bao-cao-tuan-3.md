@@ -181,4 +181,4 @@ Số ngân sách do Learner Lab hiển thị có độ trễ, không đại di�
 
 SNS chưa có subscription; không tuyên bố đã gửi email cảnh báo. Bốn alarm đã cấu hình và DLQ từng ALARM từ dữ liệu có sẵn, chưa kiểm thử riêng toàn bộ ngưỡng CPU/Memory/5XX.
 
-**Sử dụng AI:** Em sử dụng AI để nghiên cứu tài liệu, hỗ trợ cấu hình AWS, kiểm tra kết quả và biên tập báo cáo; em rà soát và chịu trách nhiệm về nội dung.
+**Sử dụng AI:** Em sử dụng AI để nghiên cứu tài liệu, hỗ trợ cấu hình AWS, kiểm tra kết quả và biên tập báo cáo; em rà soát và tự thực hiện trên aws console.
