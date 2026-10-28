@@ -6,7 +6,7 @@
 **Giảng viên hướng dẫn:** Thầy Huỳnh Xuân Phụng  
 **Môi trường:** AWS Academy Learner Lab, tài khoản nhóm `0556-5295-1832`, Region `us-east-1`  
 **Repository:** https://github.com/pttlinh32/hotel-booking-microservices  
-**Phân công Tuần 4:** Kiểm thử chịu lỗi hạ tầng (Resilience / Chaos Testing trên ECS Fargate / ALB / RDS), Phân tích chi phí & đề xuất giải pháp tối ưu hóa AWS, Hoàn thiện Sơ đồ Kiến trúc Tổng thể, Xây dựng kịch bản dọn dẹp tài nguyên an toàn `teardown-environment.ps1`, Phối hợp thực hiện Video Demo.  
+**Phân công Tuần 4:** Toàn quyền sản xuất Video Demo nghiệm thu ($\le 10$ phút) — quay màn hình, thuyết minh, biên tập, upload; Kiểm thử chịu lỗi hạ tầng (Resilience / Chaos Testing trên ECS Fargate / ALB / RDS); Phân tích chi phí & đề xuất giải pháp tối ưu hóa AWS; Hoàn thiện Sơ đồ Kiến trúc Tổng thể; Xây dựng kịch bản dọn dẹp tài nguyên an toàn `teardown-environment.ps1`.  
 **Số giờ thực hiện:** 9.5 giờ theo worklog  
 **Trạng thái:** Hoàn thành kiểm thử hạ tầng, bảng hạch toán chi phí, kịch bản dọn dẹp và video demo  
 **Ngày thực hiện:** 28/10 – 02/11/2026  
@@ -17,8 +17,8 @@
 
 | STT | Thành viên | MSSV | Vai trò chính trong Tuần 4 | Số giờ | Trạng thái |
 |:---:|---|:---:|---|:---:|:---:|
-| 1 | **Cao Hoàng Phúc** | `24110303` | **Cloud Infrastructure, Resilience, Cost Optimization & Teardown:** Kiểm thử chịu lỗi hạ tầng (Chaos Testing trên ECS/ALB/RDS); Phân tích chi phí & giải pháp tối ưu AWS; Hoàn thiện Sơ đồ Kiến trúc Tổng thể; Xây dựng kịch bản dọn dẹp triệt để `teardown-environment.ps1`. | 9.5 giờ | Hoàn thành |
-| 2 | **Phan Thị Thùy Linh** | `24110271` | **Backend Architecture, Comprehensive Testing, Video Demo & Final Documentation:** Xây dựng ma trận kiểm thử E2E (8 test cases) và script tự động; Biên tập và sản xuất Video Demo ($\le 10$ phút); Soạn thảo Báo cáo Tổng kết trên Form Online & Repo; Thiết kế Slide Thuyết trình và bộ câu hỏi vấn đáp. | 9.5 giờ | Hoàn thành |
+| 1 | **Cao Hoàng Phúc** | `24110303` | **Cloud Infrastructure, Video Demo, Resilience & Cost Optimization:** Toàn quyền sản xuất Video Demo ($\le 10$ phút); Kiểm thử chịu lỗi hạ tầng (Chaos Testing trên ECS/ALB/RDS); Phân tích chi phí & giải pháp tối ưu AWS; Hoàn thiện Sơ đồ Kiến trúc Tổng thể; Xây dựng kịch bản dọn dẹp triệt để `teardown-environment.ps1`. | 9.5 giờ | Hoàn thành |
+| 2 | **Phan Thị Thùy Linh** | `24110271` | **Comprehensive E2E Testing & Final Documentation:** Xây dựng ma trận kiểm thử E2E (8 test cases) và chụp ảnh minh chứng; Soạn thảo Báo cáo Tổng kết Đồ án trên Form Online & Repo; Push mã nguồn & tài liệu lên nhánh `week-4` và merge vào `main`. | 9.0 giờ | Hoàn thành |
 
 ---
 

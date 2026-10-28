@@ -6,9 +6,9 @@
 **Giảng viên hướng dẫn:** Thầy Huỳnh Xuân Phụng  
 **Môi trường:** Docker Desktop trên Windows & AWS Academy Learner Lab, Region `us-east-1` (Account ID: `0556-5295-1832`)  
 **Repository:** https://github.com/pttlinh32/hotel-booking-microservices  
-**Phân công Tuần 4:** Kiểm thử toàn diện End-to-End (Ma trận 8 Test Cases), Lập kịch bản & Sản xuất Video Demo nghiệm thu ($\le 10$ phút), Soạn thảo Báo cáo Tổng kết Đồ án hoàn chỉnh trên Form Online & Repo, Thiết kế Slide thuyết trình và chuẩn bị câu hỏi vấn đáp.  
-**Số giờ thực hiện:** 9.5 giờ theo worklog  
-**Trạng thái:** Hoàn thành toàn diện các hạng mục kiểm thử, video demo và hồ sơ nghiệm thu  
+**Phân công Tuần 4:** Kiểm thử toàn diện End-to-End (Ma trận 8 Test Cases) và chụp ảnh minh chứng; Soạn thảo Báo cáo Tổng kết Đồ án hoàn chỉnh trên Form Online & Repo; Push mã nguồn & tài liệu lên nhánh `week-4` và merge vào `main`.  
+**Số giờ thực hiện:** 9.0 giờ theo worklog  
+**Trạng thái:** Hoàn thành toàn diện các hạng mục kiểm thử E2E và hồ sơ nghiệm thu  
 **Ngày thực hiện:** 28/10 – 02/11/2026  
 
 ---
@@ -17,8 +17,8 @@
 
 | STT | Thành viên | MSSV | Vai trò chính trong Tuần 4 | Số giờ | Trạng thái |
 |:---:|---|:---:|---|:---:|:---:|
-| 1 | **Phan Thị Thùy Linh** | `24110271` | **Backend Architecture, Comprehensive Testing, Video Demo & Final Documentation:** Xây dựng ma trận kiểm thử E2E (8 test cases) và script tự động; Biên tập và sản xuất Video Demo ($\le 10$ phút); Soạn thảo Báo cáo Tổng kết trên Form Online & Repo; Thiết kế Slide Thuyết trình và bộ câu hỏi vấn đáp. | 9.5 giờ | Hoàn thành |
-| 2 | **Cao Hoàng Phúc** | `24110303` | **Cloud Infrastructure, Resilience, Cost Optimization & Teardown:** Kiểm thử chịu lỗi hạ tầng (Chaos Testing trên ECS/ALB/RDS); Phân tích chi phí & giải pháp tối ưu AWS; Hoàn thiện Sơ đồ Kiến trúc Tổng thể; Xây dựng kịch bản dọn dẹp triệt để `teardown-environment.ps1`. | 9.5 giờ | Hoàn thành |
+| 1 | **Phan Thị Thùy Linh** | `24110271` | **Comprehensive E2E Testing & Final Documentation:** Xây dựng ma trận kiểm thử E2E (8 test cases) và chụp ảnh minh chứng; Soạn thảo Báo cáo Tổng kết Đồ án trên Form Online & Repo; Push mã nguồn & tài liệu lên nhánh `week-4` và merge vào `main`. | 9.0 giờ | Hoàn thành |
+| 2 | **Cao Hoàng Phúc** | `24110303` | **Cloud Infrastructure, Video Demo, Resilience & Cost Optimization:** Toàn quyền sản xuất Video Demo ($\le 10$ phút); Kiểm thử chịu lỗi hạ tầng (Chaos Testing trên ECS/ALB/RDS); Phân tích chi phí & giải pháp tối ưu AWS; Hoàn thiện Sơ đồ Kiến trúc Tổng thể; Xây dựng kịch bản dọn dẹp triệt để `teardown-environment.ps1`. | 9.5 giờ | Hoàn thành |
 
 ---
 
@@ -41,27 +41,18 @@
 
 ---
 
-## 2. Sản Xuất Video Demo Nghiệm Thu Đồ Án ($\le 10$ Phút)
+## 2. Push Mã Nguồn & Tài Liệu Lên GitHub
 
-Tuân thủ nghiêm ngặt quy định nghiệm thu của môn học:
-- **Thời lượng:** 9 phút 45 giây ($\le 10$ phút).
-- **Độ phân giải:** 1080p (Full HD, 60fps), giọng thuyết minh rõ ràng, phụ đề tóm tắt điểm nhấn công nghệ.
-- **Link Video nghiệm thu:** `[Cập nhật link YouTube Unlisted / Google Drive]`
-- **Kịch bản chi tiết:** Được lưu đầy đủ tại [`docs/week-4/video-demo-script.md`](file:///d:/Năm%203/Cloud/project/hotel-booking-microservices/docs/week-4/video-demo-script.md).
-
-### Các phân đoạn chính trong Video Demo:
-1. **Phần 1 (0:00 - 1:30):** Giới thiệu nhóm Capstone, bài toán thực tế và Sơ đồ Kiến trúc Microservices trên ECS Fargate.
-2. **Phần 2 (1:30 - 4:30):** Trình diễn luồng nghiệp vụ chuẩn (Happy Path) qua Postman, kiểm tra dữ liệu trong PostgreSQL, DynamoDB và log SQS.
-3. **Phần 3 (4:30 - 6:30):** Demo tính năng chịu lỗi nghiệp vụ: Giao dịch bồi hoàn (Rollback) giải phóng phòng và Poison Message vào SQS DLQ.
-4. **Phần 4 (6:30 - 8:30):** Demo giám sát CloudWatch (Dashboard, Alarms, Logs Insights tracing Correlation ID) và bắn tải ECS Auto Scaling.
-5. **Phần 5 (8:30 - 9:30):** Demo khả năng tự phục hồi (Self-healing Fargate) và thao tác dọn dẹp tài nguyên.
-6. **Phần 6 (9:30 - 10:00):** Báo cáo tổng kết chi phí Lab (~$12.50/$50), bài học kinh nghiệm và lời cảm ơn GVHD.
+Đảm bảo toàn bộ source code 3 services, scripts và tài liệu tuần 4 được commit đầy đủ và đúng quy cách:
+- Commit tất cả thay đổi lên nhánh `week-4`.
+- Tạo Pull Request và merge vào nhánh `main`.
+- Kiểm tra repo GitHub: đủ các thư mục `booking-service/`, `room-service/`, `notification-service/`, `scripts/`, `docs/week-4/`.
 
 ---
 
 ## 3. Khai Báo Sử Dụng AI (Minh Bạch Theo Lưu Ý 1 Của GVHD)
 - **Công cụ:** Antigravity IDE, Claude 3.5 Sonnet, ChatGPT-4o.
 - **Mục đích hỗ trợ:**
-  - Hỗ trợ xây dựng cấu trúc dàn ý ma trận kiểm thử E2E và kịch bản video demo.
+  - Hỗ trợ xây dựng cấu trúc dàn ý ma trận kiểm thử E2E và báo cáo tuần 4.
   - Chuẩn hóa định dạng bảng biểu Markdown và rà soát cú pháp script.
-- **Cam kết:** Toàn bộ mã nguồn backend Java microservices, việc triển khai trên AWS Learner Lab, video demo thực tế và nội dung phân tích chi tiết đều do nhóm tự thực hiện 100%.
+- **Cam kết:** Toàn bộ mã nguồn backend Java microservices, việc triển khai trên AWS Learner Lab và nội dung phân tích chi tiết đều do nhóm tự thực hiện 100%.
