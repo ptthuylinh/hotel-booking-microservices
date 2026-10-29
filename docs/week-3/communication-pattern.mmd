@@ -1,0 +1,53 @@
+sequenceDiagram
+    autonumber
+    participant Client as Client / Postman
+    participant ALB as Public ALB (:80)
+    participant Booking as booking-service (ECS Private)
+    participant SSM as AWS SSM Parameter Store
+    participant DNS as Route 53 / Cloud Map
+    participant Room as room-service (ECS Private)
+    participant RoomDB as RDS room_db
+    participant BookingDB as RDS booking_db
+    participant Audit as DynamoDB audit log
+    participant SNS as SNS topic
+    participant SQS as SQS main queue
+    participant Notif as notification-service
+    participant DLQ as SQS dead-letter queue
+    participant CW as CloudWatch (Logs, Alarms)
+
+    Note over SSM, Booking: Khi Task khoi dong: ECS doc DB credentials tu SSM Parameter Store qua LabRole
+    Client->>ALB: POST /api/bookings (Header: X-Correlation-Id)
+    ALB->>Booking: Route toi booking-service
+    Note over Booking: Nap X-Correlation-Id vao SLF4J MDC Log context
+    Booking->>DNS: Resolve room-service.hotel.local
+    DNS-->>Booking: Private Task IP
+    Booking->>Room: PUT /api/rooms/{id}/status (RESERVED) [X-Correlation-Id]
+    Room->>RoomDB: JDBC: cap nhat trang thai phong
+    RoomDB-->>Room: Commit
+    Room-->>Booking: 200 OK / 409 CONFLICT
+
+    alt Xu ly nghiep vu tiep theo that bai (Loi JDBC / SDK)
+        Booking->>Room: COMPENSATING ACTION: PUT /api/rooms/{id}/status (AVAILABLE)
+        Room->>RoomDB: Rollback trang thai phong
+        Booking->>CW: Log ERROR kem correlationId
+        Booking-->>Client: 500 / 400 Problem Details (kem correlationId)
+    else Xu ly thanh cong (Happy Path)
+        Booking->>BookingDB: JDBC: luu don dat phong
+        Booking->>Audit: PutItem (bookingId, timestamp, correlationId)
+        Booking->>SNS: Publish Event (kem correlationId trong Message Attribute)
+        SNS->>SQS: Fanout subscription (raw message)
+        Booking->>CW: Stream Log INFO kem correlationId
+        Booking-->>Client: 201 Created (Booking JSON)
+    end
+
+    Notif->>SQS: Long poll / ReceiveMessage
+    SQS-->>Notif: Nhan message kem correlationId
+    Note over Notif: Trich xuat correlationId vao MDC
+    alt Gui thong bao thanh cong
+        Notif->>CW: Log INFO mo phong gui email (kem correlationId)
+        Notif->>SQS: DeleteMessage (ACK)
+    else Xu ly loi vuot qua maxReceiveCount = 3
+        SQS-->>DLQ: Chuyen poison message vao DLQ
+        DLQ-->>CW: Metric ApproximateNumberOfMessagesVisible >= 1
+        CW->>CW: Trigger Alarm: SQS-DLQ-Has-Poison-Messages -> Ban SNS Alert
+    end

@@ -7,8 +7,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.services.sns.SnsClient;
+import org.slf4j.MDC;
+import software.amazon.awssdk.services.sns.model.MessageAttributeValue;
 import software.amazon.awssdk.services.sns.model.PublishRequest;
 import software.amazon.awssdk.services.sns.model.PublishResponse;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 public class EventPublisherService {
@@ -34,13 +39,25 @@ public class EventPublisherService {
             String jsonPayload = objectMapper.writeValueAsString(event);
             log.info("Nội dung JSON Event phát hành:\n{}", jsonPayload);
 
-            PublishRequest publishRequest = PublishRequest.builder()
+            String corrId = MDC.get("correlationId");
+            Map<String, MessageAttributeValue> messageAttributes = new HashMap<>();
+            if (corrId != null && !corrId.isBlank()) {
+                messageAttributes.put("correlationId", MessageAttributeValue.builder()
+                        .dataType("String")
+                        .stringValue(corrId)
+                        .build());
+            }
+
+            PublishRequest.Builder publishRequestBuilder = PublishRequest.builder()
                     .topicArn(topicArn)
                     .message(jsonPayload)
-                    .subject("BookingCreatedEvent")
-                    .build();
+                    .subject("BookingCreatedEvent");
 
-            PublishResponse response = snsClient.publish(publishRequest);
+            if (!messageAttributes.isEmpty()) {
+                publishRequestBuilder.messageAttributes(messageAttributes);
+            }
+
+            PublishResponse response = snsClient.publish(publishRequestBuilder.build());
             log.info("Phát hành sự kiện lên Amazon SNS thành công! MessageId: {}", response.messageId());
         } catch (Exception e) {
             log.warn("Không thể phát hành sự kiện lên SNS (tiếp tục luồng chính): {}", e.getMessage());
