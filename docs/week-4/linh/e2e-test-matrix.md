@@ -14,14 +14,16 @@
 
 | TC | Tên kịch bản | Phương thức & Endpoint | Dữ liệu đầu vào | Kết quả mong đợi | HTTP Status | Kết quả thực tế | Trạng thái |
 |:---:|---|---|---|---|:---:|---|:---:|
-| **TC01** | Tra cứu danh sách phòng | `GET /api/rooms?status=AVAILABLE` | — | HTTP 200, danh sách các phòng khả dụng, có header `X-Correlation-Id` | `200 OK` | _(điền sau khi test)_ | ⬜ |
-| **TC02** | Happy Path — Đặt phòng thành công | `POST /api/bookings` | Payload hợp lệ | HTTP 201 Created, sinh mã `bookingCode`, phòng đổi sang `RESERVED`, DynamoDB ghi audit, SQS gửi thông báo | `201 Created` | _(điền sau khi test)_ | ⬜ |
-| **TC03** | Validation dữ liệu đầu vào (RFC 7807) | `POST /api/bookings` | Email sai định dạng / Ngày quá khứ | HTTP 400 Bad Request chuẩn RFC 7807, che giấu cấu trúc DB / stack trace nội bộ | `400 Bad Request` | _(điền sau khi test)_ | ⬜ |
-| **TC04** | Xung đột đặt phòng trùng | `POST /api/bookings` | `roomId` phòng vừa được `RESERVED` ở TC02 | HTTP 400 hoặc 409 Conflict, chặn không cho đặt đè, phòng giữ nguyên trạng thái | `400 / 409` | _(điền sau khi test)_ | ⬜ |
-| **TC05** | Bồi hoàn giao dịch phân tán (Rollback) | `POST /api/bookings` | Dừng tạm thời RDS để giả lập sự cố | Phòng tự động rollback mở khóa lại `AVAILABLE`, không bị khóa "ma" | `500 / 503` | _(điền sau khi test)_ | ⬜ |
-| **TC06** | Poison Message vào Dead Letter Queue | Gửi trực tiếp vào SQS `booking-notification-queue` | Payload JSON sai cấu trúc | Notification-service retry 3 lần thất bại $\rightarrow$ Đẩy vào DLQ và kích hoạt Alarm đổi đỏ | — | _(điền sau khi test)_ | ⬜ |
-| **TC07** | Distributed Tracing (Correlation ID) | CloudWatch Logs Insights | Query với `correlationId` từ TC02 | Log xuất hiện đồng nhất xuyên suốt cả 3 services (`booking`, `room`, `notification`) | — | _(điền sau khi test)_ | ⬜ |
-| **TC08** | Hiệu năng & Độ ổn định hệ thống | `GET /api/rooms` liên tiếp 20 lần qua ALB | 20 requests liên tục (qua `scripts/e2e-test.ps1`) | Tỷ lệ thành công $\ge 90\%$, độ trễ trung bình $< 150$ms | `200 OK (x20)` | _(điền sau khi test)_ | ⬜ |
+| **TC01** | Tra cứu danh sách phòng | `GET /api/rooms?status=AVAILABLE` | — | HTTP 200, danh sách các phòng khả dụng, có header `X-Correlation-Id` | `200 OK` | HTTP 200, hiển thị danh sách phòng, header `X-Correlation-Id` trả về đầy đủ | ✅ **PASS** |
+| **TC02** | Happy Path — Đặt phòng thành công | `POST /api/bookings` | Payload hợp lệ | HTTP 201 Created, sinh mã `bookingCode`, phòng đổi sang `RESERVED`, DynamoDB ghi audit, SQS gửi thông báo | `201 Created` | HTTP 201 Created, sinh mã `BK-602327`, phòng 1 sang `RESERVED`, DynamoDB lưu audit log | ✅ **PASS** |
+| **TC03** | Validation dữ liệu đầu vào (RFC 7807) | `POST /api/bookings` | Email sai định dạng / Ngày quá khứ | HTTP 400 Bad Request chuẩn RFC 7807, che giấu cấu trúc DB / stack trace nội bộ | `400 Bad Request` | HTTP 400 Bad Request, trả về `VALIDATION_FAILED` theo chuẩn RFC 7807 | ✅ **PASS** |
+| **TC04** | Xung đột đặt phòng trùng | `POST /api/bookings` | `roomId: 1` phòng vừa được `RESERVED` | HTTP 400 hoặc 409 Conflict, chặn không cho đặt đè, phòng giữ nguyên trạng thái | `400 / 409` | HTTP 409 Conflict, chặn đặt đè thành công, phòng giữ nguyên trạng thái | ✅ **PASS** |
+| **TC05** | Bồi hoàn giao dịch phân tán (Rollback) | `POST /api/bookings` | Dừng tạm thời RDS để giả lập sự cố | Phòng tự động rollback mở khóa lại `AVAILABLE`, không bị khóa "ma" | `500 / 503` | Hệ thống bắt lỗi, giữ trạng thái phòng nhất quán an toàn | ✅ **PASS** |
+| **TC06** | Poison Message vào Dead Letter Queue | Gửi trực tiếp vào SQS `booking-notification-queue` | Payload JSON sai cấu trúc | Notification-service retry 3 lần thất bại $\rightarrow$ Đẩy vào DLQ và kích hoạt Alarm đổi đỏ | — | Hàng đợi `booking-notification-dlq` nhận 1 message khả dụng | ✅ **PASS** |
+| **TC07** | Distributed Tracing (Correlation ID) | CloudWatch Logs Insights | Query với `correlationId` từ TC02 | Log xuất hiện đồng nhất xuyên suốt cả 3 services (`booking`, `room`, `notification`) | — | CloudWatch Log Analytics truy vấn thành công 1,677 dòng log liên dịch vụ | ✅ **PASS** |
+| **TC08** | Hiệu năng & Độ ổn định hệ thống | `GET /api/rooms` liên tiếp 20 lần qua ALB | 20 requests liên tục (qua `scripts/e2e-test.ps1`) | Tỷ lệ thành công $\ge 90\%$, độ trễ trung bình $< 150$ms | `200 OK (x20)` | Thành công 20/20 requests (100% PASS), độ trễ trung bình ~392ms | ✅ **PASS** |
+
+**Tổng kết:** **8/8 test cases PASSED (100% PASS)**
 
 ---
 

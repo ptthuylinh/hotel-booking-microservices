@@ -39,6 +39,18 @@
 | **TC07** | Distributed Tracing | Gửi header `X-Correlation-Id` qua REST | Header trả về trong Response và xuất hiện trong toàn bộ log | Header echo chính xác, trace 3 services | **PASS** |
 | **TC08** | Hiệu năng & Ổn định | Gửi liên tục 20 requests liên tiếp vào ALB | Tỷ lệ thành công $\ge 90\%$, độ trễ trung bình $< 150$ms | Thành công 100%, latency trung bình ~45ms | **PASS** |
 
+### 1.2. Danh sách ảnh minh chứng thực tế trên AWS Learner Lab (Account ID: `0556-5295-1832`, Region `us-east-1`)
+1. **TC01 (Tra cứu danh sách phòng trống):** `docs/week-4/linh/images/tc01-get-rooms-available.png`
+2. **TC02 (Happy Path - Đặt phòng thành công):** `docs/week-4/linh/images/tc02-create-booking-201.png`
+3. **TC02 (Lưu vết kiểm toán DynamoDB Audit Log):** `docs/week-4/linh/images/tc02-dynamodb-audit-log.png`
+4. **TC03 (Validation lỗi dữ liệu đầu vào RFC 7807):** `docs/week-4/linh/images/tc03-rfc7807-validation.png`
+5. **TC04 (Xung đột đặt trùng phòng đang RESERVED):** `docs/week-4/linh/images/tc04-room-conflict-blocked.png`
+6. **TC06 (Hàng đợi thông điệp SQS & Dead Letter Queue):** `docs/week-4/linh/images/tc06-sqs-dlq-alarm.png`
+7. **TC07 (Truy vết phân tán trên CloudWatch Logs Insights):** `docs/week-4/linh/images/tc07-distributed-tracing.png`
+8. **TC08 (Bảng tổng kết kiểm thử toàn diện tự động 8/8 PASS):** `docs/week-4/linh/images/tc08-e2e-test-summary.png`
+
+*(Toàn bộ các ảnh chụp màn hình đều hiển thị đầy đủ Account ID, Region us-east-1 và timestamp thực thi)*.
+
 ---
 
 ## 2. Push Mã Nguồn & Tài Liệu Lên GitHub

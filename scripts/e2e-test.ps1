@@ -3,7 +3,7 @@
 
 param (
     [Parameter(Mandatory=$false)]
-    [string]$BASE_URL = "http://hotel-booking-alb-4bb29c65802c7069.elb.us-east-1.amazonaws.com"
+    [string]$BASE_URL = "http://hotel-booking-alb-1393379083.us-east-1.elb.amazonaws.com"
 )
 
 Write-Host "================================================================================" -ForegroundColor Cyan
@@ -25,7 +25,7 @@ function Record-TestResult {
     )
     $statusText = if ($Passed) { "PASS" } else { "FAIL" }
     $color = if ($Passed) { "Green" } else { "Red" }
-    Write-Host " [$statusText] $TestId: $TestName ($DurationMs ms)" -ForegroundColor $color
+    Write-Host " [$statusText] ${TestId}: $TestName ($DurationMs ms)" -ForegroundColor $color
     
     $script:testResults += [PSCustomObject]@{
         TestId     = $TestId
@@ -64,7 +64,11 @@ try {
 # -------------------------------------------------------------------------------------------------
 Write-Host "`n--------------------------------------------------------------------------------"
 Write-Host "▶ TC02: Happy Path - Tao don dat phong hop le (POST /api/bookings)" -ForegroundColor Yellow
-$targetRoomId = 1
+$targetRoomId = 4
+try {
+    $availRooms = Invoke-RestMethod -Uri "$BASE_URL/api/rooms?status=AVAILABLE" -Method Get -TimeoutSec 5
+    if ($availRooms.Count -gt 0) { $targetRoomId = $availRooms[0].id }
+} catch {}
 $corrId = "e2e-happy-" + [System.Guid]::NewGuid().ToString().Substring(0, 8)
 $payload = @{
     customerName  = "Nguyen Van Capstone"
@@ -251,7 +255,7 @@ Record-TestResult -TestId "TC08" -TestName "Do tre & on dinh (20 requests lien t
 # BẢNG TỔNG KẾT MA TRẬN KIỂM THỬ (TEST MATRIX SUMMARY)
 # -------------------------------------------------------------------------------------------------
 Write-Host "`n================================================================================" -ForegroundColor Cyan
-Write-Host " BẢNG TỔNG KẾT MA TRẬN KIỂM THỬ TỔNG THỂ (E2E TEST MATRIX SUMMARY):" -ForegroundColor Cyan
+Write-Host " BANG TONG KET MA TRAN KIEM THU TONG THE (E2E TEST MATRIX SUMMARY):" -ForegroundColor Cyan
 Write-Host "================================================================================" -ForegroundColor Cyan
 
 $testResults | Format-Table -Property TestId, TestName, Status, DurationMs, Actual -AutoSize
@@ -261,8 +265,8 @@ $totalPassed = ($testResults | Where-Object { $_.Status -eq "PASS" }).Count
 $passRate = [math]::Round(($totalPassed / $totalTests) * 100, 1)
 
 if ($totalPassed -eq $totalTests) {
-    Write-Host " KET QUA CHUNG: TAT CA $totalPassed/$totalTests KIEM THU DAT (100% PASS)!" -ForegroundColor Green
+    Write-Host " KET QUA CHUNG: TAT CA $totalPassed/$totalTests KIEM THU DAT [100% PASS]!" -ForegroundColor Green
 } else {
-    Write-Host " KET QUA CHUNG: $totalPassed/$totalTests KIEM THU DAT ($passRate% PASS)" -ForegroundColor Yellow
+    Write-Host " KET QUA CHUNG: $totalPassed/$totalTests KIEM THU DAT [$passRate% PASS]" -ForegroundColor Yellow
 }
-Write-Host "================================================================================`n" -ForegroundColor Cyan
+Write-Host "================================================================================" -ForegroundColor Cyan
