@@ -45,9 +45,10 @@
 3. **TC02 (Lưu vết kiểm toán DynamoDB Audit Log):** `docs/week-4/linh/images/tc02-dynamodb-audit-log.png`
 4. **TC03 (Validation lỗi dữ liệu đầu vào RFC 7807):** `docs/week-4/linh/images/tc03-rfc7807-validation.png`
 5. **TC04 (Xung đột đặt trùng phòng đang RESERVED):** `docs/week-4/linh/images/tc04-room-conflict-blocked.png`
-6. **TC06 (Hàng đợi thông điệp SQS & Dead Letter Queue):** `docs/week-4/linh/images/tc06-sqs-dlq-alarm.png`
-7. **TC07 (Truy vết phân tán trên CloudWatch Logs Insights):** `docs/week-4/linh/images/tc07-distributed-tracing.png`
-8. **TC08 (Bảng tổng kết kiểm thử toàn diện tự động 8/8 PASS):** `docs/week-4/linh/images/tc08-e2e-test-summary.png`
+6. **TC05 (Cơ chế bồi hoàn giao dịch Compensating Rollback):** `docs/week-4/linh/images/tc05-compensating-rollback.png`
+7. **TC06 (Hàng đợi thông điệp SQS & Dead Letter Queue):** `docs/week-4/linh/images/tc06-sqs-dlq-alarm.png`
+8. **TC07 (Truy vết phân tán trên CloudWatch Logs Insights):** `docs/week-4/linh/images/tc07-distributed-tracing.png`
+9. **TC08 (Bảng tổng kết kiểm thử toàn diện tự động 8/8 PASS):** `docs/week-4/linh/images/tc08-e2e-test-summary.png`
 
 *(Toàn bộ các ảnh chụp màn hình đều hiển thị đầy đủ Account ID, Region us-east-1 và timestamp thực thi)*.
 
