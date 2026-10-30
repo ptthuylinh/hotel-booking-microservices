@@ -18,7 +18,7 @@ Không dùng dữ liệu khách thật. Chuẩn bị sẵn AWS Console, DB viewe
 ## Chuẩn bị giao diện
 
 1. Mở `http://<ALB-DNS>/ui/index.html` và bấm **Làm mới dữ liệu**. Cả 3 service phải báo đã kết nối.
-2. Mở **Quản lý phòng**, chọn một phòng AVAILABLE. Kiểm tra danh sách booking để tránh dùng phòng đã RESERVED.
+2. Dữ liệu Lab hiện có 4/4 phòng RESERVED. Trước lượt demo mới, dùng **Quản lý phòng → Chi tiết → Sẵn sàng** để chuẩn bị một phòng kiểm thử, ghi rõ lý do reset dữ liệu Lab; đây không phải thao tác hủy đơn. Chọn ngày demo phù hợp và không dùng dữ liệu khách thật.
 3. Tạo booking bằng UI, giữ lại mã BK và mã correlation trong nhật ký; tra cứu lại bằng cả mã và ID.
 4. Mở **Thông báo**, tải lại sau một vài giây. Lịch sử API nằm trong RAM từng task; CloudWatch là bằng chứng đối chiếu khi task restart.
 5. UI đổi trạng thái phòng chỉ tác động phòng; không có API hủy booking. Không trình bày thao tác này như hủy đơn.
@@ -43,3 +43,7 @@ Xem [README bộ sơ đồ](architecture/README.md). File draw.io có 3 trang; P
 `scripts/teardown-environment.ps1` là script xóa tài nguyên và bỏ final snapshot của RDS.
 Bản hiện tại chưa xóa toàn bộ target groups, cluster, dashboard, SSM, NAT/VPC và DynamoDB như một số nội dung báo cáo mô tả.
 Chỉ trình chiếu khi còn cần hệ thống; không chạy trước khi đã quay và lưu đủ minh chứng. Sau nghiệm thu cần rà lại tài nguyên còn tính phí trên Console.
+
+## Lượt smoke test đã có để đối chiếu
+
+Booking `BK-98346` / ID `0b357113-4e85-417e-b125-83b31297a94d`, phòng B-202, nhãn `UI Smoke Test 30-10`, 15–17/01/2027. Audit và notification đã được kiểm chứng. Có thể tra cứu đơn này để trình diễn trước khi tạo một đơn demo mới.
