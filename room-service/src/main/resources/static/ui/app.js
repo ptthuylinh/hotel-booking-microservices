@@ -2,6 +2,11 @@ const $ = (selector) => document.querySelector(selector);
 const state = { rooms: [], bookings: [], notifications: [], requests: [], failures: {}, loaded: false, generation: 0 };
 const titles = { overview: ['Tổng quan khách sạn', 'Mọi hoạt động của khách sạn, trong một không gian.'], rooms: ['Quản lý phòng', 'Theo dõi tình trạng phòng và sẵn sàng đón khách.'], 'new-booking': ['Đặt phòng mới', 'Một kỳ nghỉ trọn vẹn bắt đầu từ đây.'], bookings: ['Đơn đặt phòng', 'Tra cứu và theo dõi mọi lượt đặt phòng.'], notifications: ['Thông báo', 'Lịch sử xử lý thông báo từ notification-service.'] };
 const statusNames = { AVAILABLE: 'Sẵn sàng', RESERVED: 'Đã đặt', MAINTENANCE: 'Bảo trì', OCCUPIED: 'Đang ở', CONFIRMED: 'Đã xác nhận', SENT: 'Đã xử lý' };
+export function createCorrelationId(cryptoApi = globalThis.crypto) {
+  if (typeof cryptoApi?.randomUUID === 'function') return cryptoApi.randomUUID();
+  const bytes = cryptoApi.getRandomValues(new Uint8Array(16));
+  return 'web-' + Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('');
+}
 export const escapeHtml = (v) => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const e = escapeHtml;
 const money = (v) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'USD' }).format(Number(v) || 0);
@@ -25,7 +30,7 @@ function logRequests() {
   $('#requests').innerHTML = state.requests.map(r => `<div class="request-row">${e(r.method)} ${e(r.path)} · HTTP ${e(r.status)} · ${r.ms} ms<small>Correlation: ${e(r.correlation || 'Không có header trả về')} · ${e(r.time)}</small>${r.error ? `<small>${e(r.error)}</small>` : ''}</div>`).join('');
 }
 async function api(path, options = {}) {
-  const started = performance.now(), correlation = crypto.randomUUID(); let status = 'NETWORK', returnedCorrelation = '', failure = '';
+  const started = performance.now(), correlation = createCorrelationId(); let status = 'NETWORK', returnedCorrelation = '', failure = '';
   try {
     const response = await fetch(path, { ...options, headers: { 'Content-Type': 'application/json', 'X-Correlation-Id': correlation, ...options.headers }, signal: AbortSignal.timeout(20000) });
     status = response.status; returnedCorrelation = response.headers.get('X-Correlation-Id') || correlation;
