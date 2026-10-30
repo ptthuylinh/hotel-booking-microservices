@@ -88,3 +88,8 @@ python3 scripts/configure-room-discovery.py
 Script đăng ký room-service với Cloud Map private namespace `hotel.internal` và cập nhật
 `ROOM_SERVICE_URL` của booking sang `http://room-service.hotel.internal:8080`.
 ECS tự quản lý bản ghi theo task mới, tránh IP cũ sau redeploy/self-healing; giữ nguyên zone `hotel.local` cũ.
+
+Trong Learner Lab không được cấp `servicediscovery:CreatePrivateDnsNamespace`, script tự chuyển
+sang endpoint HTTP của ALB hiện có. Booking gọi `/api/rooms*` qua ALB để theo target ECS mới,
+không phụ thuộc bản ghi A tĩnh của task. Luồng này đi qua NAT/ALB và có thêm độ trễ/chi phí mạng;
+không thay đổi IAM, Security Groups hoặc dữ liệu RDS.
