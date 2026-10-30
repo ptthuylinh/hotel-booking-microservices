@@ -76,3 +76,13 @@ Qua 4 tuần triển khai thực tế trên Region `us-east-1`, tổng chi phí 
 - **Công cụ:** Antigravity IDE, Claude 3.5 Sonnet, ChatGPT-4o.
 - **Phạm vi hỗ trợ:** Rà soát cú pháp câu lệnh PowerShell trong script dọn dẹp tài nguyên; chuẩn hóa định dạng bảng biểu báo cáo.
 - **Cam kết:** Toàn bộ cấu hình hạ tầng AWS, CloudWatch Alarms, Dashboard, ECS Auto Scaling, kiểm thử chịu lỗi và dữ liệu chi phí đều do nhóm tự thao tác và thực hiện 100% trên AWS Learner Lab.
+
+---
+
+## Cập nhật phục vụ video ngày 30/10/2026
+
+- [Bộ sơ đồ kiến trúc, ERD và database strategy đúng bản triển khai tuần 4](architecture/README.md) — PNG 4K/SVG và draw.io 3 trang.
+- [Kịch bản video có UI, tối đa 10 phút](demo-ui-runbook.md).
+- [Phạm vi kiểm thử UI, triển khai và khai báo hỗ trợ AI của phần cập nhật](ui-verification.md).
+
+Các số liệu/khẳng định trong phần báo cáo ban đầu cần được đối chiếu lại với bản đang chạy khi quay video, đặc biệt mã lỗi DB, thời gian tự phục hồi, độ trễ và chi phí. Bộ tài liệu cập nhật ghi rõ giới hạn thực tế để tránh mô tả tính năng chưa triển khai.

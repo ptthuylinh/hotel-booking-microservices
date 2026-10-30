@@ -1,0 +1,38 @@
+erDiagram
+    ROOM_DB_ROOMS ||..o{ BOOKING_DB_BOOKINGS : "logical room_id reference; REST; no cross-DB FK"
+    BOOKING_DB_BOOKINGS ||..o{ DYNAMODB_AUDIT : "booking_code maps to bookingId; best effort"
+    ROOM_DB_ROOMS {
+        bigint id PK "identity"
+        varchar20 room_number UK "NOT NULL"
+        varchar50 type "NOT NULL"
+        numeric10_2 price_per_night "NOT NULL"
+        varchar30 status "NOT NULL"
+        text description "nullable"
+        timestamp created_at "NOT NULL"
+        timestamp updated_at "NOT NULL"
+    }
+    BOOKING_DB_BOOKINGS {
+        varchar36 id PK "UUID string"
+        varchar30 booking_code UK "NOT NULL"
+        varchar50 customer_id "NOT NULL; no customers table"
+        varchar100 customer_name "NOT NULL"
+        varchar150 customer_email "NOT NULL"
+        varchar20 customer_phone "nullable"
+        bigint room_id "logical reference, not SQL FK"
+        date check_in_date "NOT NULL"
+        date check_out_date "NOT NULL"
+        numeric12_2 total_price "NOT NULL"
+        varchar30 status "NOT NULL"
+        timestamp created_at "NOT NULL"
+        timestamp updated_at "NOT NULL"
+    }
+    DYNAMODB_AUDIT {
+        string bookingId PK "HASH; stores BK code"
+        string timestamp PK "RANGE; composite primary key"
+        string auditId
+        string action
+        string previousStatus
+        string newStatus
+        string actor
+        map details
+    }

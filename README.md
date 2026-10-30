@@ -104,3 +104,9 @@ python3 scripts/configure-room-discovery.py
 ```
 
 Script kiểm tra label của từng image trùng source revision trước khi push. Không đưa AWS credentials vào archive.
+
+## Sơ đồ và video demo tuần 4
+
+- [Kiến trúc AWS, ERD, database strategy — draw.io 3 trang + PNG 4K](docs/week-4/phuc/architecture/README.md).
+- [Kịch bản video có UI trong 10 phút](docs/week-4/phuc/demo-ui-runbook.md).
+- [Kết quả kiểm thử UI và triển khai](docs/week-4/phuc/ui-verification.md).

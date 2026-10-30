@@ -1,8 +1,9 @@
 // Integration checks against disposable local containers only; never targets AWS.
 import assert from 'node:assert/strict';
-const base='http://127.0.0.1:58080';
+const base='http://127.0.0.1:58081';
+const apiBase=path=>path.startsWith('/api/bookings')?'http://127.0.0.1:58082':path.startsWith('/api/notifications')?'http://127.0.0.1:58083':base;
 let passed=0;
-async function call(path,status=200,options={}){const response=await fetch(base+path,{...options,headers:{'Content-Type':'application/json','X-Correlation-Id':'ui-integration-local'}});assert.equal(response.status,status,path);assert.equal(response.headers.get('X-Correlation-Id'),'ui-integration-local');passed++;return response;}
+async function call(path,status=200,options={}){const response=await fetch(apiBase(path)+path,{...options,headers:{'Content-Type':'application/json','X-Correlation-Id':'ui-integration-local'}});assert.equal(response.status,status,path);assert.equal(response.headers.get('X-Correlation-Id'),'ui-integration-local');passed++;return response;}
 const json=async(path,status=200,options={})=>(await call(path,status,options)).json();
 for(const path of ['/ui/index.html','/ui/app.js','/ui/styles.css'])assert.ok((await call(path)).headers.get('content-type'));
 const root=await call('/');assert.match(await root.text(),/ui\/index.html/);
