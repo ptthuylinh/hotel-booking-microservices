@@ -78,3 +78,13 @@ Script build/push cả 3 image với tag theo commit, giữ cấu hình task đa
 khởi động RDS hiện có nếu đang dừng, và thêm rule `/`, `/ui`, `/ui/*` tới room target group.
 Không thay đổi dữ liệu RDS hoặc Security Groups. Các rule `/api/*` được giữ nguyên.
 Script lưu ARN task cũ vào `deployment-rollback.json` (được gitignore) để rollback bằng `aws ecs update-service`.
+
+Nếu môi trường cũ dùng bản ghi Route 53 tĩnh trỏ vào IP của task, chạy thêm:
+
+```bash
+python3 scripts/configure-room-discovery.py
+```
+
+Script đăng ký room-service với Cloud Map private namespace `hotel.internal` và cập nhật
+`ROOM_SERVICE_URL` của booking sang `http://room-service.hotel.internal:8080`.
+ECS tự quản lý bản ghi theo task mới, tránh IP cũ sau redeploy/self-healing; giữ nguyên zone `hotel.local` cũ.
