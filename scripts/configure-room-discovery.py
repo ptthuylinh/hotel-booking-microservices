@@ -11,7 +11,8 @@ from pathlib import Path
 
 
 def aws(*args):
-    return json.loads(subprocess.check_output(['aws', *args, '--output', 'json']))
+    output = subprocess.check_output(['aws', *args, '--output', 'json'])
+    return json.loads(output) if output.strip() else {}
 
 
 def main():
