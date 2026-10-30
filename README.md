@@ -39,3 +39,42 @@
 - **Backend:** Java 17, Spring Boot, Maven Wrapper.
 - **Containerization:** Docker (multi-stage build).
 - **AWS Cloud (Learner Lab):** ECS Fargate, ECR, ALB (path-based routing), RDS, DynamoDB, SNS, SQS, CloudWatch.
+
+## Giao diện web Maison
+
+Giao diện tiếng Việt được đóng gói trong `room-service`, không cần thêm frontend service.
+Mở `http://<ALB-DNS>/ui/index.html` sau khi triển khai. Đường dẫn `/` chuyển đến giao diện.
+
+- Tổng quan dữ liệu và kết nối 3 dịch vụ.
+- Xem/lọc phòng, xem chi tiết và cập nhật trạng thái với lý do, mã booking tham chiếu.
+- Tạo booking với kiểm tra email/ngày lưu trú, hiển thị giá dự kiến; máy chủ tính giá chính thức.
+- Xem đơn, tra cứu bằng mã booking hoặc ID, xem toàn bộ chi tiết.
+- Xem và làm mới thông báo; lịch sử nằm trong bộ nhớ từng notification task, mất khi restart.
+- Nhật ký HTTP, độ trễ và `X-Correlation-Id` để đối chiếu CloudWatch.
+
+Đây là giao diện phục vụ Learner Lab trên các API hiện có, chưa có đăng nhập/phân quyền.
+UI không điều khiển chaos testing, autoscaling hay teardown; các thao tác hạ tầng thực hiện trong AWS Console/script.
+
+### Kiểm thử
+
+```bash
+npm ci --prefix frontend-tests
+npm test --prefix frontend-tests
+```
+
+Bộ kiểm thử UI dùng mock API để kiểm tra luồng giao diện, lỗi, retry và escape HTML.
+Kiểm thử tích hợp cần chạy thêm với 3 service thật và PostgreSQL; SNS/SQS/DynamoDB cần kiểm chứng trên AWS.
+Các context test Maven cần cấu hình PostgreSQL qua `SPRING_DATASOURCE_*`.
+
+### Triển khai từ AWS CloudShell
+
+Sau khi clone/pull đúng commit đã kiểm thử và kiểm tra tài khoản Lab:
+
+```bash
+bash scripts/deploy-ui-cloudshell.sh
+```
+
+Script build/push cả 3 image với tag theo commit, giữ cấu hình task đang dùng, cập nhật ECS,
+khởi động RDS hiện có nếu đang dừng, và thêm rule `/`, `/ui`, `/ui/*` tới room target group.
+Không thay đổi dữ liệu RDS hoặc Security Groups. Các rule `/api/*` được giữ nguyên.
+Script lưu ARN task cũ vào `deployment-rollback.json` (được gitignore) để rollback bằng `aws ecs update-service`.
