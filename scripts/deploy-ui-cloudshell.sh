@@ -9,7 +9,9 @@ EXPECTED_ACCOUNT="${EXPECTED_ACCOUNT:-055652951832}"
 ACCOUNT=$(aws sts get-caller-identity --query Account --output text)
 [[ "$ACCOUNT" == "$EXPECTED_ACCOUNT" ]] || { echo "Wrong AWS account: $ACCOUNT"; exit 1; }
 [[ -z "$(git status --porcelain)" ]] || { echo 'Checkout must be clean before deployment.'; exit 1; }
-TAG="ui-$(git rev-parse --short=12 HEAD)"
+SOURCE_REVISION="${SOURCE_REVISION:-$(git rev-parse HEAD)}"
+git merge-base --is-ancestor "$SOURCE_REVISION" HEAD
+TAG="ui-${SOURCE_REVISION:0:12}"
 REGISTRY="$ACCOUNT.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com"
 TASK_DIR=$(mktemp -d)
 trap 'rm -rf "$TASK_DIR"' EXIT
@@ -35,7 +37,14 @@ aws ecr get-login-password | docker login --username AWS --password-stdin "$REGI
 for SERVICE in room-service booking-service notification-service; do
   REPO="hotel-$SERVICE"
   aws ecr describe-repositories --repository-names "$REPO" --query 'repositories[0].repositoryName' --output text
-  docker build -t "$REGISTRY/$REPO:$TAG" "$SERVICE"
+  if [[ "${PREBUILT_IMAGES:-0}" == 1 ]]; then
+    LOCAL_IMAGE="hotel-$SERVICE:ui-week4"
+    IMAGE_REVISION=$(docker image inspect "$LOCAL_IMAGE" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')
+    [[ "$IMAGE_REVISION" == "$SOURCE_REVISION" ]] || { echo "Wrong source revision for $LOCAL_IMAGE"; exit 1; }
+    docker tag "$LOCAL_IMAGE" "$REGISTRY/$REPO:$TAG"
+  else
+    docker build --label "org.opencontainers.image.revision=$SOURCE_REVISION" -t "$REGISTRY/$REPO:$TAG" "$SERVICE"
+  fi
   docker push "$REGISTRY/$REPO:$TAG"
 done
 aws rds wait db-instance-available --db-instance-identifier hotel-db-instance

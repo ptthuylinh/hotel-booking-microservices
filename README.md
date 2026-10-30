@@ -93,3 +93,14 @@ Trong Learner Lab không được cấp `servicediscovery:CreatePrivateDnsNamesp
 sang endpoint HTTP của ALB hiện có. Booking gọi `/api/rooms*` qua ALB để theo target ECS mới,
 không phụ thuộc bản ghi A tĩnh của task. Luồng này đi qua NAT/ALB và có thêm độ trễ/chi phí mạng;
 không thay đổi IAM, Security Groups hoặc dữ liệu RDS.
+
+CloudShell thiếu dung lượng build có thể dùng image đã build/test local. Build cả 3 image
+`hotel-<service>:ui-week4` với label `org.opencontainers.image.revision=<full commit SHA>`,
+`docker save` vào một archive và upload qua **CloudShell Actions → Upload file**. Sau `docker load`:
+
+```bash
+PREBUILT_IMAGES=1 SOURCE_REVISION=<full commit SHA> bash scripts/deploy-ui-cloudshell.sh
+python3 scripts/configure-room-discovery.py
+```
+
+Script kiểm tra label của từng image trùng source revision trước khi push. Không đưa AWS credentials vào archive.
