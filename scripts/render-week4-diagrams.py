@@ -96,7 +96,7 @@ def architecture(discovery):
     s.text(45,455,'ALB path routing',17,GREEN,600,width=220)
     s.text(45,486,'/ → UI\n/ui/* → room\n/api/rooms* → room\n/api/bookings* → booking\n/api/notifications* → notify',15,MUTED,width=250)
     if discovery == 'alb':
-        s.arrow([(740,473),(690,473),(690,320),(705,320)],BLUE,True)
+        s.arrow([(1005,540),(1035,540),(1035,580),(1375,580),(1375,330),(1215,330)],BLUE,True)
         s.text(45,646,'REST: booking → ALB → room',13,BLUE,width=260)
     else:
         s.arrow([(725,530),(665,530)],BLUE);s.text(671,512,'REST',13,BLUE,width=60)
