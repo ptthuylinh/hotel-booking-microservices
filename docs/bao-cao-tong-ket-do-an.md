@@ -137,7 +137,20 @@ Trong ngành du lịch và lưu trú khách sạn hiện đại, các hệ thố
                       └──────────────────────────────────────────────────────────────┘
 ```
 
-### 2.2. Biện luận lựa chọn dịch vụ AWS & Tuân thủ hạn mức Learner Lab
+### 2.2. Sơ đồ tuần tự giao tiếp hệ thống (Sequence Diagram)
+
+Để minh họa chi tiết luồng dữ liệu trao đổi giữa các microservices và các dịch vụ AWS trong cả tình huống thành công và sự cố, nhóm xây dựng sơ đồ tuần tự:
+
+![Sơ đồ tuần tự giao tiếp microservices](communication-pattern.png)
+
+*Luồng giao tiếp chính gồm:*
+1. **Khởi động dịch vụ:** ECS Task đọc DB credentials từ AWS SSM Parameter Store (`SecureString`) an toàn qua `LabRole`.
+2. **Khóa phòng đồng bộ:** `booking-service` phân giải tên miền nội bộ `room-service.hotel.local` qua Route 53 / AWS Cloud Map và gọi REST sang `room-service` để giữ phòng (`RESERVED`).
+3. **Cơ chế Bồi hoàn (Compensating Transaction):** Nếu các bước tiếp theo gặp lỗi (DB / SDK), hệ thống gọi bù trừ giải phóng phòng về `AVAILABLE` và trả về lỗi chuẩn RFC 7807 (Problem Details).
+4. **Lưu vết & Bất đồng bộ (Happy Path):** Lưu đơn vào PostgreSQL `booking_db`, ghi audit log vào DynamoDB `hotel-booking-audit-logs`, phát hành sự kiện lên Amazon SNS fanout sang Amazon SQS `booking-notification-queue`.
+5. **Tiêu thụ thông báo & Xử lý tin nhắn độc:** `notification-service` poll SQS để mô phỏng gửi email; nếu gặp lỗi quá 3 lần (`maxReceiveCount = 3`), tin nhắn tự động chuyển vào Dead Letter Queue (`booking-notification-dlq`) và kích hoạt CloudWatch Alarm.
+
+### 2.3. Biện luận lựa chọn dịch vụ AWS & Tuân thủ hạn mức Learner Lab
 
 | Dịch vụ AWS | Vai trò trong hệ thống | Lý do lựa chọn giải pháp | Ràng buộc Learner Lab & Cách giải quyết |
 |---|---|---|---|
